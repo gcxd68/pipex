@@ -49,24 +49,26 @@ static char	**ft_get_paths(char **env)
 	return (paths);
 }
 
-static void	ft_initialize(t_pipex *data, int argc, char *argv[])
+static void	ft_init_fd(t_pipex *data, int argc, char *argv[])
 {
 	int	i;
 
-	data->io_fd[0] = -1;
-	data->io_fd[1] = -1;
-	data->pipe_fd[0] = -1;
-	data->pipe_fd[1] = -1;
-	if (argc != 5)
-		ft_cleanup_parent(data, "Usage: ./pipex infile cmd1 cmd2 outfile");
 	i = -1;
 	while (++i < argc - 3)
 		data->cmd[i] = argv [i + 2];
-	if (access(argv[1], F_OK) == -1)
-		ft_cleanup_parent(data, "Infile does not exist");
-	data->io_fd[0] = open(argv[1], O_RDONLY);
-	if (data->io_fd[0] == -1)
-		ft_cleanup_parent(data, "Failed to open infile");
+	if (access(argv[1], F_OK) == -1 || access(argv[1], R_OK) == -1)
+	{
+		perror("Infile does not exist or cannot be read, using /dev/null");
+		data->io_fd[0] = open("/dev/null", O_RDONLY);
+		if (data->io_fd[0] == -1)
+			ft_cleanup_parent(data, "Failed to open /dev/null as infile");
+	}
+	else
+	{
+		data->io_fd[0] = open(argv[1], O_RDONLY);
+		if (data->io_fd[0] == -1)
+			ft_cleanup_parent(data, "Failed to open infile");
+	}
 	if (access(argv[argc - 1], F_OK) == 0 && access(argv[argc - 1], W_OK) == -1)
 		ft_cleanup_parent(data, "No write permission for outfile");
 	data->io_fd[1] = open(argv[argc - 1], O_WRONLY | O_CREAT | O_TRUNC, 0644);
@@ -97,13 +99,23 @@ static void	ft_pipeline(t_pipex *data, char **env)
 int	main(int argc, char *argv[], char **env)
 {
 	t_pipex	data;
+	int		status;
 	int		i;
 
 	data = (t_pipex){0};
-	ft_initialize(&data, argc, argv);
+	data.io_fd[0] = -1;
+	data.io_fd[1] = -1;
+	data.pipe_fd[0] = -1;
+	data.pipe_fd[1] = -1;
+	if (argc != 5)
+		ft_cleanup_parent(&data, "Usage: ./pipex infile cmd1 cmd2 outfile");
+	ft_init_fd(&data, argc, argv);
 	ft_pipeline(&data, env);
 	i = -1;
 	while (++i < argc - 3)
-		waitpid(data.pid[i], NULL, 0);
-	return (0);
+		if (waitpid(data.pid[i], &status, 0) == -1)
+			perror("waitpid failed");
+	if (WIFEXITED(status))
+		return (WEXITSTATUS(status));
+	return (-1);
 }

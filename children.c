@@ -60,11 +60,11 @@ void	ft_first_child(t_pipex *data, char **env)
 	args = ft_split(data->cmd[0], ' ');
 	if (!args)
 		exit(ft_cleanup_child(NULL, NULL, "Failed to split cmd1"));
-	close(data->pipe_fd[0]); // Ne pas lire depuis le pipe dans ce processus
-	if (dup2(data->io_fd[0], 0) == -1 || dup2(data->pipe_fd[1], 1) == -1) // Rediriger l'entrée depuis le fichier d'entrée et la sortie vers le pipe
+	close(data->pipe_fd[0]);
+	if (dup2(data->io_fd[0], 0) == -1 || dup2(data->pipe_fd[1], 1) == -1)
 		exit(ft_cleanup_child(args, NULL, "dup2 failed"));
-	close(data->pipe_fd[1]); // Fermer le descripteur après duplication
-	close(data->io_fd[0]); // Fermer le fichier d'entrée
+	close(data->pipe_fd[1]);
+	close(data->io_fd[0]);
 	cmd_path = ft_find_cmd_path(args[0], data->paths);
 	if (!cmd_path)
 		exit(ft_cleanup_child(args, NULL, "Command not found"));
@@ -80,11 +80,11 @@ void	ft_last_child(t_pipex *data, char **env)
 	args = ft_split(data->cmd[1], ' ');
 	if (!args)
 		exit(ft_cleanup_child(NULL, NULL, "Failed to split cmd1"));
-	close(data->pipe_fd[1]); // Ne pas écrire dans le pipe
-	if (dup2(data->pipe_fd[0], 0) == -1 || dup2(data->io_fd[1], 1) == -1) // Rediriger l'entrée depuis le pipe et la sortie vers le fichier de sortie
+	close(data->pipe_fd[1]);
+	if (dup2(data->pipe_fd[0], 0) == -1 || dup2(data->io_fd[1], 1) == -1)
 		exit(ft_cleanup_child(args, NULL, "dup2 failed"));
-	close(data->pipe_fd[0]); // Fermer le descripteur après duplication
-	close(data->io_fd[1]); // Fermer le fichier de sortie
+	close(data->pipe_fd[0]);
+	close(data->io_fd[1]);
 	cmd_path = ft_find_cmd_path(args[0], data->paths);
 	if (!cmd_path)
 		exit(ft_cleanup_child(args, NULL, "Command not found"));

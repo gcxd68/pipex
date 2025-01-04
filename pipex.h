@@ -39,12 +39,13 @@ typedef struct s_pipex
 	int		pipe_fd[2];
 }	t_pipex;
 
-
 void	ft_first_child(t_pipex *data, char **env);
 void	ft_last_child(t_pipex *data, char **env);
 
 void	ft_free_arr(void **arr);
 void	*ft_memcpy(void *dest, const void *src, size_t n);
+int		ft_printf(const char *format, ...)
+		__attribute__((format(printf, 1, 2)));
 char	**ft_split(char const *s, char c);
 size_t	ft_strlcpy(char *dst, const char *src, size_t size);
 size_t	ft_strlen(const char *s);
