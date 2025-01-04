@@ -30,7 +30,20 @@
 # include <sys/types.h>
 # include <sys/wait.h>
 
-int		ft_printf(const char *format, ...) __attribute__((format(printf, 1, 2)));
+typedef struct s_pipex
+{
+	pid_t	pid[2];
+	char	**paths;
+	char	*cmd[2];
+	int		io_fd[2];
+	int		pipe_fd[2];
+}	t_pipex;
+
+
+void	ft_first_child(t_pipex *data, char **env);
+void	ft_last_child(t_pipex *data, char **env);
+
+void	ft_free_arr(void **arr);
 void	*ft_memcpy(void *dest, const void *src, size_t n);
 char	**ft_split(char const *s, char c);
 size_t	ft_strlcpy(char *dst, const char *src, size_t size);
