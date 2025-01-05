@@ -11,10 +11,10 @@
 # **************************************************************************** #
 
 SRC =			pipex.c \
-				utils.c
+				pipex_utils.c
 
 SRCB =			pipex_bonus.c \
-				utils_bonus.c
+				pipex_utils_bonus.c
 
 OBJ =			$(SRC:.c=.o)
 OBJB =			$(SRCB:.c=.o)

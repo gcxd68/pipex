@@ -1,7 +1,7 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   pipex.c                                            :+:      :+:    :+:   */
+/*   pipex_bonus.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: gdosch <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
@@ -10,26 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "pipex.h"
-
-static void	ft_cleanup_parent(t_pipex *data, char *error_msg)
-{
-	if (data->paths)
-		ft_free_arr((void **)data->paths);
-	if (data->pipe_fd[0] != -1)
-		close(data->pipe_fd[0]);
-	if (data->pipe_fd[1] != -1)
-		close(data->pipe_fd[1]);
-	if (data->io_fd[0] != -1)
-		close(data->io_fd[0]);
-	if (data->io_fd[1] != -1)
-		close(data->io_fd[1]);
-	if (error_msg)
-	{
-		perror(error_msg);
-		exit(EXIT_FAILURE);
-	}
-}
+#include "pipex_bonus.h"
 
 static char	**ft_get_paths(char **env)
 {
@@ -49,8 +30,9 @@ static char	**ft_get_paths(char **env)
 	return (paths);
 }
 
-static void	ft_init_io(t_pipex *data, int argc, char *argv[])
+static void	ft_init_io(t_pipex *data, char *argv[])
 {
+	ft_memset(data->io_fd, -1, sizeof(data->io_fd));
 	if (access(argv[1], F_OK) == -1 || access(argv[1], R_OK) == -1)
 	{
 		perror("Infile does not exist or cannot be read, using /dev/null");
@@ -60,7 +42,8 @@ static void	ft_init_io(t_pipex *data, int argc, char *argv[])
 		data->io_fd[0] = open(argv[1], O_RDONLY);
 	if (data->io_fd[0] == -1)
 		ft_cleanup_parent(data, "Failed to open infile");
-	if (access(argv[argc - 1], F_OK) == 0 && access(argv[argc - 1], W_OK) == -1)
+	if (access(argv[data->cmd_ct + 2], F_OK) == 0
+		&& access(argv[data->cmd_ct + 2], W_OK) == -1)
 	{
 		data->wprot = 1;
 		perror("No write permission for outfile, using /dev/null");
@@ -68,28 +51,57 @@ static void	ft_init_io(t_pipex *data, int argc, char *argv[])
 	}
 	else
 		data->io_fd[1]
-			= open(argv[argc - 1], O_WRONLY | O_CREAT | O_TRUNC, 0644);
+			= open(argv[data->cmd_ct + 2], O_WRONLY | O_CREAT | O_TRUNC, 0644);
 	if (data->io_fd[1] == -1)
 		ft_cleanup_parent(data, "Failed to open outfile");
 }
 
+static void	ft_init_data(t_pipex *data, char *argv[])
+{
+	int	i;
+
+	data->pid = malloc(sizeof(pid_t) * data->cmd_ct);
+	if (!data->pid)
+		ft_cleanup_parent(data, "Failed to allocate memory for pids");
+	data->cmd = ft_calloc(data->cmd_ct + 1, sizeof(char *));
+	if (!data->cmd)
+		ft_cleanup_parent(data, "Failed to allocate memory for cmds");
+	i = -1;
+	while (++i < data->cmd_ct)
+		data->cmd[i] = argv [i + 2];
+	data->pipe_fd = malloc(sizeof(int *) * (data->cmd_ct - 1));
+	if (!data->pipe_fd)
+		ft_cleanup_parent(data, "Failed to allocate memory for pipes");
+	i = -1;
+	while (++i < data->cmd_ct - 1)
+	{
+		data->pipe_fd[i] = malloc(sizeof(int) * 2);
+		if (!data->pipe_fd[i])
+			ft_cleanup_parent(data, "Failed to allocate memory for a pipe");
+		ft_memset(data->pipe_fd[i], -1, sizeof(int) * 2);
+	}
+}
+
 static void	ft_pipeline(t_pipex *data, char **env)
 {
-	if (pipe(data->pipe_fd) == -1)
-		ft_cleanup_parent(data, "pipe failed");
+	int	i;
+
 	data->paths = ft_get_paths(env);
 	if (!data->paths)
 		ft_cleanup_parent(data, "Failed to get PATH");
-	data->pid[0] = fork();
-	if (data->pid[0] == -1)
-		ft_cleanup_parent(data, "fork failed");
-	if (data->pid[0] == 0)
-		exit(ft_first_child(data, env));
-	data->pid[1] = fork();
-	if (data->pid[1] == -1)
-		ft_cleanup_parent(data, "fork failed");
-	if (data->pid[1] == 0)
-		exit(ft_last_child(data, env));
+	i = -1;
+	while (++i < data->cmd_ct - 1)
+		if (pipe(data->pipe_fd[i]) == -1)
+			ft_cleanup_parent(data, "pipe failed");
+	i = -1;
+	while (++i < data->cmd_ct)
+	{
+		data->pid[i] = fork();
+		if (data->pid[i] == -1)
+			ft_cleanup_parent(data, "fork failed");
+		if (data->pid[i] == 0)
+			exit(ft_child(data, env, &i));
+	}
 	ft_cleanup_parent(data, NULL);
 }
 
@@ -99,21 +111,18 @@ int	main(int argc, char *argv[], char **env)
 	int		i;
 
 	data = (t_pipex){0};
-	data.io_fd[0] = -1;
-	data.io_fd[1] = -1;
-	data.pipe_fd[0] = -1;
-	data.pipe_fd[1] = -1;
-	if (argc != 5)
-		return (write(2, "Usage: ./pipex file1 cmd1 cmd2 file2\n", 37), 0);
-	i = -1;
-	while (++i < argc - 3)
-		data.cmd[i] = argv [i + 2];
-	ft_init_io(&data, argc, argv);
+	data.cmd_ct = argc - 3;
+	if (data.cmd_ct < 2)
+		return (write(2, "Usage: ./pipex file1 cmd1 ... cmdn file2\n", 41), 0);
+	ft_init_io(&data, argv);
+	ft_init_data(&data, argv);
 	ft_pipeline(&data, env);
 	i = -1;
-	while (++i < argc - 3)
+	while (++i < data.cmd_ct)
 		if (waitpid(data.pid[i], &data.status, 0) == -1)
 			perror("waitpid failed");
+	if (data.pid)
+		free(data.pid);
 	if (data.wprot == 1)
 		return (data.wprot);
 	if (WIFEXITED(data.status))
