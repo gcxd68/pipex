@@ -37,7 +37,7 @@ void	ft_cleanup_parent(t_pipex *data, char *error_msg)
 {
 	ft_close_fds(data);
 	if (data->pipe_fd)
-		ft_free_arr((void **)data->pipe_fd);
+		ft_free_int_arr(data->pipe_fd, data->cmd_ct - 1);
 	if (data->cmd)
 		free(data->cmd);
 	if (data->paths)
