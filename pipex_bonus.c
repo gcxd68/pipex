@@ -68,7 +68,7 @@ static void	ft_init_data(t_pipex *data, char *argv[])
 		ft_cleanup(data, NULL, "Failed to allocate memory for cmds", 1);
 	i = -1;
 	while (++i < data->cmd_ct)
-		data->cmd[i] = argv [i + 2];
+		data->cmd[i] = argv [i + 2 + data->here_doc];
 	data->pipe_fd = malloc(sizeof(int *) * (data->cmd_ct - 1));
 	if (!data->pipe_fd)
 		ft_cleanup(data, NULL, "Failed to allocate memory for pipes", 1);
@@ -116,10 +116,22 @@ int	main(int argc, char *argv[], char **env)
 	t_pipex	data;
 
 	data = (t_pipex){0};
-	data.cmd_ct = argc - 3;
-	if (data.cmd_ct < 2)
-		return (write(2, "Usage: ./pipex file1 cmd1 ... cmdn file2\n", 41), 0);
-	ft_init_io(&data, argv);
+	data.here_doc = (argc > 1 && !ft_strncmp(argv[1], "here_doc", 8));
+	data.cmd_ct = argc - 3 - data.here_doc;
+	if (data.here_doc)
+	{
+		if (data.cmd_ct < 2)
+			return (write(2,
+					"Usage: ./pipex here_doc LIMITER cmd1 cmd2 file\n", 46), 1);
+		data.limiter = argv[2];
+		ft_here_doc(&data, argv);
+	}
+	else
+	{
+		if (data.cmd_ct < 2)
+			return (write(2, "Usage: ./pipex file1 cmd1 cmd2 file2\n", 36), 1);
+		ft_init_io(&data, argv);
+	}
 	ft_init_data(&data, argv);
 	ft_pipeline(&data, env);
 	if (data.wprot == 1)

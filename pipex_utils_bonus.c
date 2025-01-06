@@ -27,6 +27,13 @@ void	ft_close_fds(t_pipex *data)
 				close(data->pipe_fd[i][1]);
 		}
 	}
+	if (data->here_doc)
+	{
+		if (data->here_pipe[0] != -1)
+			close(data->here_pipe[0]);
+		if (data->here_pipe[1] != -1)
+			close(data->here_pipe[1]);
+	}
 	if (data->io_fd[0] != -1)
 		close(data->io_fd[0]);
 	if (data->io_fd[1] != -1)
@@ -81,6 +88,45 @@ static char	*ft_find_cmd_path(char *cmd, char **path)
 	return (NULL);
 }
 
+void	ft_here_doc(t_pipex *data, char *argv[])
+{
+	pid_t	pid;
+	char	*line;
+
+	ft_memset(data->here_pipe, -1, sizeof(data->here_pipe));
+	data->io_fd[0] = data->here_pipe[0];
+	data->io_fd[1] = open(argv[data->cmd_ct + 3],
+			O_WRONLY | O_CREAT | O_APPEND, 0644);
+	if (pipe(data->here_pipe) == -1)
+		ft_cleanup(data, NULL, "Failed to create here_doc pipe", 1);
+	pid = fork();
+	if (pid == -1)
+		ft_cleanup(data, NULL, "Failed to fork for here_doc", 1);
+	if (pid == 0)
+	{
+		close(data->here_pipe[0]);
+		while (1)
+		{
+			write(1, "heredoc> ", 9);
+			line = get_next_line(0);
+			if (!line)
+				break ;
+			if (ft_strncmp(line, argv[2], ft_strlen(argv[2])) == 0
+				&& line[ft_strlen(argv[2])] == '\n')
+			{
+				free(line);
+				break ;
+			}
+			write(data->here_pipe[1], line, ft_strlen(line));
+			free(line);
+		}
+		close(data->here_pipe[1]);
+		exit(EXIT_SUCCESS);
+	}
+	close(data->here_pipe[1]);
+	waitpid(pid, NULL, 0);
+}
+
 void	ft_child(t_pipex *data, char **env, int *i)
 {
 	char	**args;
@@ -90,8 +136,20 @@ void	ft_child(t_pipex *data, char **env, int *i)
 	if (!args)
 		ft_cleanup(data, NULL, "Failed to split cmd", 1);
 	if (*i == 0)
-		if (dup2(data->io_fd[0], 0) == -1 || dup2(data->pipe_fd[0][1], 1) == -1)
-			ft_cleanup(data, args, "dup2 failed", 1);
+	{
+		if (data->here_doc)
+		{
+			if (dup2(data->here_pipe[0], STDIN_FILENO) == -1
+				|| dup2(data->pipe_fd[0][1], STDOUT_FILENO) == -1)
+				ft_cleanup(data, args, "dup2 failed (here_doc)", 1);
+		}
+		else
+		{
+			if (dup2(data->io_fd[0], 0) == -1
+				|| dup2(data->pipe_fd[0][1], 1) == -1)
+				ft_cleanup(data, args, "dup2 failed", 1);
+		}
+	}
 	if (*i == data->cmd_ct - 1)
 		if (dup2(data->pipe_fd[data->cmd_ct - 2][0], 0) == -1
 			|| dup2(data->io_fd[1], 1) == -1)
