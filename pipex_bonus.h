@@ -33,8 +33,8 @@ typedef struct s_pipex
 }	t_pipex;
 
 void	ft_close_fds(t_pipex *data);
-int		ft_child(t_pipex *data, char **env, int *i);
-void	ft_cleanup_parent(t_pipex *data, char *error_msg);
+void	ft_child(t_pipex *data, char **env, int *i);
+void	ft_cleanup(t_pipex *data, char **args, char *error_msg, int status);
 
 void	*ft_calloc(size_t nmemb, size_t size);
 void	ft_free_arr(void **arr);
