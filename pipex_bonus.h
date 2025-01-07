@@ -22,23 +22,26 @@
 
 typedef struct s_pipex
 {
-	char	**paths;
+	char	**args;
 	char	**cmd;
+	char	**paths;
 	int		**pipe_fd;
-	char	*limiter;
+	char	*cmd_path;
+	char	*line;
 	pid_t	*pid;
-	int		here_pipe[2];
+	int		hd_fd[2];
 	int		io_fd[2];
 	int		cmd_ct;
 	int		here_doc;
 	int		status;
 	int		wprot;
+	pid_t	hd_pid;
 }	t_pipex;
 
 void	ft_close_fds(t_pipex *data);
 void	ft_child(t_pipex *data, char **env, int *i);
-void	ft_cleanup(t_pipex *data, char **args, char *error_msg, int status);
-void	ft_here_doc(t_pipex *data, char *argv[]);
+void	ft_cleanup(t_pipex *data, char *error_msg, int status);
+void	ft_here_doc(t_pipex *data, char *limiter);
 
 void	*ft_calloc(size_t nmemb, size_t size);
 void	ft_free_arr(void **arr);
