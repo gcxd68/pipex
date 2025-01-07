@@ -20,6 +20,7 @@ OBJ =			$(SRC:.c=.o)
 OBJB =			$(SRCB:.c=.o)
 
 NAME =			pipex
+BONUS_NAME =	pipex_bonus
 
 CC =			cc
 CFLAGS =		-Wall -Wextra -Werror
@@ -32,8 +33,10 @@ all:			$(LIBFT) $(NAME)
 $(NAME):		$(OBJ)
 				$(CC) $(CFLAGS) -o $(NAME) $(OBJ) $(LIBFT)
 
-bonus:			$(LIBFT) $(OBJB)
-				$(CC) $(CFLAGS) -o $(NAME) $(OBJB) $(LIBFT)
+bonus:			$(LIBFT) $(BONUS_NAME)
+
+$(BONUS_NAME):	$(OBJB)
+				$(CC) $(CFLAGS) -o $(BONUS_NAME) $(OBJB) $(LIBFT)
 
 $(LIBFT):
 				make -C $(LIBFT_DIR)
@@ -43,7 +46,7 @@ clean:
 				make clean -C $(LIBFT_DIR)
 
 fclean:			clean
-				rm -f $(NAME)
+				rm -f $(NAME) $(BONUS_NAME)
 				make fclean -C $(LIBFT_DIR)
 
 re:				fclean all
