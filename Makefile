@@ -20,33 +20,38 @@ OBJ =			$(SRC:.c=.o)
 OBJB =			$(SRCB:.c=.o)
 
 NAME =			pipex
-BONUS_NAME =	pipex_bonus
 
 CC =			cc
 CFLAGS =		-Wall -Wextra -Werror
 
 LIBFT =			libft/libft.a
-LIBFT_DIR = 	libft
+LIBFT_DIR =		libft
 
-all:			$(LIBFT) $(NAME)
+all:			$(LIBFT)
+				@if [ -f .bonus ]; then \
+					rm -f $(NAME); \
+					rm -f .bonus; \
+				fi; \
+				make $(NAME)
 
 $(NAME):		$(OBJ)
 				$(CC) $(CFLAGS) -o $(NAME) $(OBJ) $(LIBFT)
 
-bonus:			$(LIBFT) $(BONUS_NAME)
+bonus:			.bonus
 
-$(BONUS_NAME):	$(OBJB)
-				$(CC) $(CFLAGS) -o $(BONUS_NAME) $(OBJB) $(LIBFT)
+.bonus:			$(LIBFT) $(OBJB)
+				$(CC) $(CFLAGS) -o $(NAME) $(OBJB) $(LIBFT)
+				@touch .bonus
 
 $(LIBFT):
 				make -C $(LIBFT_DIR)
 
 clean:
-				rm -f $(OBJ) $(OBJB)
+				rm -f $(OBJ) $(OBJB) .bonus
 				make clean -C $(LIBFT_DIR)
 
 fclean:			clean
-				rm -f $(NAME) $(BONUS_NAME)
+				rm -f $(NAME)
 				make fclean -C $(LIBFT_DIR)
 
 re:				fclean all
