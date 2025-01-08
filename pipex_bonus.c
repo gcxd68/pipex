@@ -28,7 +28,7 @@ static void	ft_init_io(t_pipex *data, char *infile, char *outfile)
 	ft_memset(data->io_fd, -1, sizeof(data->io_fd));
 	if (data->here_doc)
 		data->io_fd[0] = data->hd_fd[0];
-	if (access(infile, F_OK) == -1 || access(infile, R_OK) == -1)
+	if (access(infile, F_OK | R_OK) == -1)
 	{
 		perror("Infile does not exist or cannot be read, using /dev/null");
 		data->io_fd[0] = open("/dev/null", O_RDONLY);

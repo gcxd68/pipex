@@ -67,21 +67,23 @@ void	ft_cleanup(t_pipex *data, char *error_msg, int status)
 static char	*ft_find_cmd_path(char *cmd, char **path)
 {
 	char	*full_path;
-	size_t	len_path;
-	size_t	len_cmd;
 	size_t	i;
 
+	if (cmd[0] == '/' || (cmd[0] == '.' && cmd[1] == '/'))
+	{
+		if (access(cmd, F_OK | X_OK) == 0)
+			return (ft_strdup(cmd));
+		return (NULL);
+	}
 	i = 0;
-	len_cmd = ft_strlen(cmd);
 	while (path[i])
 	{
-		len_path = ft_strlen(path[i]);
-		full_path = malloc(len_path + len_cmd + 2);
+		full_path = malloc(ft_strlen(path[i]) + ft_strlen(cmd) + 2);
 		if (!full_path)
 			return (NULL);
-		ft_memcpy(full_path, path[i], len_path);
-		full_path[len_path] = '/';
-		ft_strlcpy(full_path + len_path + 1, cmd, len_cmd + 1);
+		ft_memcpy(full_path, path[i], ft_strlen(path[i]));
+		full_path[ft_strlen(path[i])] = '/';
+		ft_strlcpy(full_path + ft_strlen(path[i]) + 1, cmd, ft_strlen(cmd) + 1);
 		if (access(full_path, X_OK) == 0)
 			return (full_path);
 		free(full_path);
