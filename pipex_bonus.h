@@ -16,7 +16,6 @@
 # include <fcntl.h>
 # include <stdlib.h>
 # include <stdio.h>
-# include <string.h>
 # include <unistd.h>
 # include <sys/wait.h>
 
@@ -38,7 +37,6 @@ typedef struct s_pipex
 	pid_t	hd_pid;
 }	t_pipex;
 
-void	ft_close_fds(t_pipex *data);
 void	ft_child(t_pipex *data, char **env, int *i);
 void	ft_cleanup(t_pipex *data, char *error_msg, int status);
 void	ft_here_doc(t_pipex *data, char *limiter);

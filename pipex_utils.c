@@ -12,18 +12,34 @@
 
 #include "pipex.h"
 
-static int	ft_cleanup_child(char **args, char **paths, char *error_msg)
+static void	ft_close_fds(t_pipex *data)
 {
-	if (args)
-		ft_free_arr((void **)args);
-	if (paths)
-		ft_free_arr((void **)paths);
-	if (error_msg)
+	if (data->pipe_fd[0] != -1)
+		close(data->pipe_fd[0]);
+	if (data->pipe_fd[1] != -1)
+		close(data->pipe_fd[1]);
+	if (data->io_fd[0] != -1)
+		close(data->io_fd[0]);
+	if (data->io_fd[1] != -1)
+		close(data->io_fd[1]);
+}
+
+void	ft_cleanup(t_pipex *data, char *error_msg, int status)
+{
+	if (data)
 	{
-		perror(error_msg);
-		return (EXIT_FAILURE);
+		ft_close_fds(data);
+		if (data->paths)
+			ft_free_arr((void **)data->paths);
+		if (data->cmd_path)
+			free(data->cmd_path);
 	}
-	return (EXIT_SUCCESS);
+	if (data->args)
+		ft_free_arr((void **)data->args);
+	if (error_msg)
+		perror(error_msg);
+	if (status > 0)
+		exit(status);
 }
 
 static char	*ft_find_cmd_path(char *cmd, char **path)
@@ -52,42 +68,22 @@ static char	*ft_find_cmd_path(char *cmd, char **path)
 	return (NULL);
 }
 
-int	ft_first_child(t_pipex *data, char **env)
+void	ft_child(t_pipex *data, char **env, int *i)
 {
-	char	**args;
-	char	*cmd_path;
-
-	args = ft_split(data->cmd[0], ' ');
-	if (!args)
-		return (ft_cleanup_child(NULL, NULL, "Failed to split cmd1"));
-	close(data->pipe_fd[0]);
-	if (dup2(data->io_fd[0], 0) == -1 || dup2(data->pipe_fd[1], 1) == -1)
-		return (ft_cleanup_child(args, NULL, "dup2 failed"));
-	close(data->pipe_fd[1]);
-	close(data->io_fd[0]);
-	cmd_path = ft_find_cmd_path(args[0], data->paths);
-	if (!cmd_path)
-		return (ft_cleanup_child(args, data->paths, "Command not found"), 127);
-	execve(cmd_path, args, env);
-	return (free(cmd_path), ft_cleanup_child(args, NULL, "execve failed"));
-}
-
-int	ft_last_child(t_pipex *data, char **env)
-{
-	char	**args;
-	char	*cmd_path;
-
-	args = ft_split(data->cmd[1], ' ');
-	if (!args)
-		return (ft_cleanup_child(NULL, NULL, "Failed to split cmd1"));
-	close(data->pipe_fd[1]);
-	if (dup2(data->pipe_fd[0], 0) == -1 || dup2(data->io_fd[1], 1) == -1)
-		return (ft_cleanup_child(args, NULL, "dup2 failed"));
-	close(data->pipe_fd[0]);
-	close(data->io_fd[1]);
-	cmd_path = ft_find_cmd_path(args[0], data->paths);
-	if (!cmd_path)
-		return (ft_cleanup_child(args, data->paths, "Command not found"), 127);
-	execve(cmd_path, args, env);
-	return (free(cmd_path), ft_cleanup_child(args, NULL, "execve failed"));
+	data->args = ft_split(data->cmd[*i], ' ');
+	if (!data->args)
+		ft_cleanup(data, "Failed to split cmd", 1);
+	if (*i == 0)
+		if (dup2(data->io_fd[0], 0) == -1 || dup2(data->pipe_fd[1], 1) == -1)
+			ft_cleanup(data, "dup2 failed", 1);
+	if (*i == 1)
+		if (dup2(data->pipe_fd[0], 0) == -1
+			|| dup2(data->io_fd[1], 1) == -1)
+			ft_cleanup(data, "dup2 failed", 1);
+	ft_close_fds(data);
+	data->cmd_path = ft_find_cmd_path(data->args[0], data->paths);
+	if (!data->cmd_path)
+		ft_cleanup(data, "Command not found", 127);
+	execve(data->cmd_path, data->args, env);
+	ft_cleanup(data, "execve failed", 1);
 }

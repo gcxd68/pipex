@@ -12,7 +12,7 @@
 
 #include "pipex_bonus.h"
 
-void	ft_close_fds(t_pipex *data)
+static void	ft_close_fds(t_pipex *data)
 {
 	int	i;
 
