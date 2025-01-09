@@ -26,17 +26,6 @@ static void	ft_get_paths(t_pipex *data, char **env)
 static void	ft_init_io(t_pipex *data, char *infile, char *outfile)
 {
 	ft_memset(data->io_fd, -1, sizeof(data->io_fd));
-	if (data->here_doc)
-		data->io_fd[0] = data->hd_fd[0];
-	if (access(infile, F_OK | R_OK) == -1)
-	{
-		perror("Infile does not exist or cannot be read, using /dev/null");
-		data->io_fd[0] = open("/dev/null", O_RDONLY);
-	}
-	else
-		data->io_fd[0] = open(infile, O_RDONLY);
-	if (data->io_fd[0] == -1)
-		ft_cleanup(data, "Failed to open infile", 1);
 	if (access(outfile, F_OK) == 0 && access(outfile, W_OK) == -1)
 	{
 		data->wprot = 1;
@@ -49,6 +38,17 @@ static void	ft_init_io(t_pipex *data, char *infile, char *outfile)
 		data->io_fd[1] = open(outfile, O_WRONLY | O_CREAT | O_TRUNC, 0644);
 	if (data->io_fd[1] == -1)
 		ft_cleanup(data, "Failed to open outfile", 1);
+	if (data->here_doc)
+		return ;
+	if (access(infile, F_OK | R_OK) == -1)
+	{
+		perror("Infile does not exist or cannot be read, using /dev/null");
+		data->io_fd[0] = open("/dev/null", O_RDONLY);
+	}
+	else
+		data->io_fd[0] = open(infile, O_RDONLY);
+	if (data->io_fd[0] == -1)
+		ft_cleanup(data, "Failed to open infile", 1);
 }
 
 static void	ft_init_data(t_pipex *data, char *argv[])
@@ -88,6 +88,7 @@ static void	ft_pipeline(t_pipex *data, char *argv[], char **env)
 		if (pipe(data->hd_fd) == -1)
 			ft_cleanup(data, "Failed to create here_doc pipe", 1);
 		ft_here_doc(data, argv[2]);
+		data->io_fd[0] = data->hd_fd[0];
 	}
 	i = -1;
 	while (++i < data->cmd_ct - 1)
