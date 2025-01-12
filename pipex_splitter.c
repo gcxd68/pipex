@@ -12,14 +12,25 @@
 
 #include "pipex.h"
 
-static int	ft_add_arg(char *cmd_idx, char ***args, int arg_ct, int arg_len)
+static int	ft_add_arg(char *cmd_idx, char ***args, int arg_ct, int len)
 {
 	char	*arg;
+	int		i;
+	int		j;
 
-	arg = malloc(arg_len + 1);
+	arg = malloc(len + 1);
 	if (!arg)
 		return (-1);
-	ft_strlcpy(arg, cmd_idx, arg_len + 1);
+	i = 0;
+	j = 0;
+	while (i < len)
+	{
+		if (cmd_idx[i] == '\\' && cmd_idx[i + 1]
+			&& (cmd_idx[i + 1] == '"' || cmd_idx[i + 1] == '\\'))
+			i++;
+		arg[j++] = cmd_idx[i++];
+	}
+	arg[j] = '\0';
 	*args = ft_realloc(*args, sizeof(char *) * (arg_ct + 2));
 	if (!*args)
 		return (free(arg), -1);
@@ -28,11 +39,19 @@ static int	ft_add_arg(char *cmd_idx, char ***args, int arg_ct, int arg_len)
 	return (0);
 }
 
-static void	ft_is_quote(char c, bool quote[2])
+static void	ft_is_quote(char *cmd, int i, bool quote[2])
 {
-	if (c == '\'' && !quote[1])
+	if (quote[0])
+		return ;
+	if (quote[1])
+	{
+		if (cmd[i] == '\"' && (i == 0 || cmd[i - 1] != '\\'))
+			quote[1] = !quote[1];
+		return ;
+	}
+	if (cmd[i] == '\'')
 		quote[0] = !quote[0];
-	else if (c == '\"' && !quote[0])
+	else if (cmd[i] == '\"')
 		quote[1] = !quote[1];
 }
 
@@ -52,7 +71,7 @@ int	ft_split_args(char ***args, char *cmd)
 			continue ;
 		start_idx = i;
 		while (cmd[i] && (cmd[i] != ' ' || quote[0] || quote[1]))
-			ft_is_quote(cmd[i++], quote);
+			ft_is_quote(cmd, i++, quote);
 		if (cmd[i - 1] == '\'' || cmd[i - 1] == '\"')
 			quote[2] = !quote[2];
 		if (i > start_idx)
