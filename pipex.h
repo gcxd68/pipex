@@ -14,6 +14,7 @@
 # define PIPEX_H
 
 # include <fcntl.h>
+# include <stdbool.h>
 # include <stdlib.h>
 # include <stdio.h>
 # include <unistd.h>
@@ -34,10 +35,12 @@ typedef struct s_pipex
 
 void	ft_child(t_pipex *data, char **env, int *i);
 void	ft_cleanup(t_pipex *data, char *error_msg, int status);
+int		ft_split_args(char ***args, char *cmd);
 
 void	ft_free_arr(void **arr);
 void	*ft_memcpy(void *dest, const void *src, size_t n);
 void	*ft_memset(void *s, int c, size_t n);
+void	*ft_realloc(void *ptr, size_t size);
 char	**ft_split(char const *s, char c);
 char	*ft_strdup(char *s);
 size_t	ft_strlcpy(char *dst, const char *src, size_t size);

@@ -80,8 +80,7 @@ void	ft_child(t_pipex *data, char **env, int *i)
 			|| dup2(data->io_fd[1], 1) == -1)
 			ft_cleanup(data, "dup2 failed", 1);
 	ft_close_fds(data);
-	data->args = ft_split(data->cmd[*i], ' ');
-	if (!data->args)
+	if (ft_split_args(&data->args, data->cmd[*i]) < 0)
 		ft_cleanup(data, "Failed to split cmd", 1);
 	data->cmd_path = ft_find_cmd_path(data->args[0], data->paths);
 	if (!data->cmd_path)
