@@ -18,10 +18,12 @@ static void	ft_close_fds(t_pipex *data)
 		close(data->pipe_fd[0]);
 	if (data->pipe_fd[1] != -1)
 		close(data->pipe_fd[1]);
+	ft_memset(data->pipe_fd, -1, sizeof(data->pipe_fd));
 	if (data->io_fd[0] != -1)
 		close(data->io_fd[0]);
 	if (data->io_fd[1] != -1)
 		close(data->io_fd[1]);
+	ft_memset(data->io_fd, -1, sizeof(data->io_fd));
 }
 
 void	ft_cleanup(t_pipex *data, char *error_msg, int status)

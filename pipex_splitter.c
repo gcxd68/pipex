@@ -26,7 +26,8 @@ static int	ft_add_arg(char *cmd_idx, char ***args, int arg_ct, int len)
 	while (i < len)
 	{
 		if (cmd_idx[i] == '\\' && cmd_idx[i + 1]
-			&& (cmd_idx[i + 1] == '"' || cmd_idx[i + 1] == '\\'))
+			&& (cmd_idx[i + 1] == '"' || cmd_idx[i + 1] == '\''
+				|| cmd_idx[i + 1] == '\\'))
 			i++;
 		arg[j++] = cmd_idx[i++];
 	}
@@ -39,34 +40,51 @@ static int	ft_add_arg(char *cmd_idx, char ***args, int arg_ct, int len)
 	return (0);
 }
 
-static void	ft_is_quote(char *cmd, int i, bool quote[2])
+static void	ft_is_quote(char *cmd, int i, bool quote[3])
 {
-	if (quote[0])
-		return ;
-	if (quote[1])
+	if (quote[0] && cmd[i] == '\'' && cmd[i - 1] != '\\')
 	{
-		if (cmd[i] == '\"' && (i == 0 || cmd[i - 1] != '\\'))
-			quote[1] = !quote[1];
+		quote[0] = !quote[0];
 		return ;
 	}
-	if (cmd[i] == '\'')
+	if (quote[1] && cmd[i] == '\"' && cmd[i - 1] != '\\')
+	{
+		quote[1] = !quote[1];
+		return ;
+	}
+	if (cmd[i] == '\'' && (i == 0 || cmd[i - 1] != '\\'))
 		quote[0] = !quote[0];
-	else if (cmd[i] == '\"')
+	else if (cmd[i] == '\"' && (i == 0 || cmd[i - 1] != '\\'))
 		quote[1] = !quote[1];
 }
 
-int	ft_split_args(char ***args, char *cmd)
+static int	ft_valid_cmd(char ***args, char *cmd)
+{
+	if (access(cmd, F_OK) == 0)
+	{
+		*args = malloc(sizeof(char *) * 2);
+		if (!*args)
+			return (-1);
+		(*args)[0] = ft_strdup(cmd);
+		if (!(*args)[0])
+			return (-1);
+		(*args)[1] = NULL;
+	}
+	return (0);
+}
+
+static int	ft_split_core(char ***args, char *cmd)
 {
 	bool	quote[3];
 	int		arg_ct;
 	int		start_idx;
 	int		i;
 
+	ft_memset(quote, 0, sizeof(quote));
 	arg_ct = 0;
 	i = -1;
 	while (cmd[++i])
 	{
-		ft_memset(quote, 0, sizeof(quote));
 		if (cmd[i] == ' ')
 			continue ;
 		start_idx = i;
@@ -81,5 +99,14 @@ int	ft_split_args(char ***args, char *cmd)
 		if (!cmd[i])
 			break ;
 	}
+	return (0);
+}
+
+int	ft_split_args(char ***args, char *cmd)
+{
+	if (access(cmd, F_OK) == 0)
+		return (ft_valid_cmd(args, cmd));
+	if (ft_split_core(args, cmd) < 0)
+		return (-1);
 	return (0);
 }

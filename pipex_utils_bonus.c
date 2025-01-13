@@ -25,19 +25,20 @@ static void	ft_close_fds(t_pipex *data)
 				close(data->pipe_fd[i][0]);
 			if (data->pipe_fd[i][1] != -1)
 				close(data->pipe_fd[i][1]);
+			ft_memset(data->pipe_fd[i], -1, sizeof(int) * 2);
 		}
 	}
 	if (data->here_doc)
 	{
-		if (data->hd_fd[0] != -1)
-			close(data->hd_fd[0]);
-		if (data->hd_fd[1] != -1)
-			close(data->hd_fd[1]);
+		i = -1;
+		while (++i < 2 && data->hd_fd[i] != -1)
+			close(data->hd_fd[i]);
+		ft_memset(data->hd_fd, -1, sizeof(data->hd_fd));
 	}
-	if (data->io_fd[0] != -1)
-		close(data->io_fd[0]);
-	if (data->io_fd[1] != -1)
-		close(data->io_fd[1]);
+	i = -1;
+	while (++i < 2 && data->io_fd[i] != -1)
+		close(data->io_fd[i]);
+	ft_memset(data->io_fd, -1, sizeof(data->io_fd));
 }
 
 void	ft_cleanup(t_pipex *data, char *error_msg, int status)
