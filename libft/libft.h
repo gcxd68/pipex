@@ -62,7 +62,7 @@ void	ft_putchar_fd(char c, int fd);
 void	ft_putendl_fd(char *s, int fd);
 void	ft_putnbr_fd(int n, int fd);
 void	ft_putstr_fd(char *s, int fd);
-void	*ft_realloc(void *ptr, size_t size);
+void	*ft_realloc(void *ptr, size_t old_size, size_t new_size);
 char	**ft_split(char const *s, char c);
 char	*ft_strchr(const char *s, int c);
 char	*ft_strdup(char *s);
