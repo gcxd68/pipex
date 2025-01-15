@@ -13,10 +13,12 @@
 #ifndef PIPEX_BONUS_H
 # define PIPEX_BONUS_H
 
+# include <errno.h>
 # include <fcntl.h>
 # include <stdbool.h>
 # include <stdlib.h>
 # include <stdio.h>
+# include <string.h>
 # include <unistd.h>
 # include <sys/wait.h>
 
@@ -39,11 +41,13 @@ typedef struct s_pipex
 }	t_pipex;
 
 void	ft_child(t_pipex *data, char **env, int *i);
-void	ft_cleanup(t_pipex *data, char *error_msg, int status);
+void	ft_cleanup(t_pipex *data, char *error_msg, char *cmd, int status);
 void	ft_here_doc(t_pipex *data, char *limiter);
 int		ft_split_args(char ***args, char *cmd);
 
 void	*ft_calloc(size_t nmemb, size_t size);
+int		ft_fprintf(int fd, const char *format, ...)
+		__attribute__((format(printf, 2, 3)));
 void	ft_free_arr(void **arr);
 void	ft_free_int_arr(int **arr, size_t size);
 void	*ft_memcpy(void *dest, const void *src, size_t n);

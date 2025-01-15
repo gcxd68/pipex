@@ -13,10 +13,12 @@
 #ifndef PIPEX_H
 # define PIPEX_H
 
+# include <errno.h>
 # include <fcntl.h>
 # include <stdbool.h>
 # include <stdlib.h>
 # include <stdio.h>
+# include <string.h>
 # include <unistd.h>
 # include <sys/wait.h>
 
@@ -34,9 +36,11 @@ typedef struct s_pipex
 }	t_pipex;
 
 void	ft_child(t_pipex *data, char **env, int *i);
-void	ft_cleanup(t_pipex *data, char *error_msg, int status);
+void	ft_cleanup(t_pipex *data, char *error_msg, char *cmd, int status);
 int		ft_split_args(char ***args, char *cmd);
 
+int		ft_fprintf(int fd, const char *format, ...)
+		__attribute__((format(printf, 2, 3)));
 void	ft_free_arr(void **arr);
 void	*ft_memcpy(void *dest, const void *src, size_t n);
 void	*ft_memset(void *s, int c, size_t n);
