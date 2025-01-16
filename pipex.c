@@ -14,30 +14,22 @@
 
 static void	ft_get_paths(t_pipex *data, char **env)
 {
-	size_t	i;
-
 	if (!env || !*env)
 	{
-		data->paths = malloc(sizeof(char *) * 6);
-		if (!data->paths)
-			ft_cleanup(data, "Failed to split PATH", NULL, 1);
-		data->paths[0] = ft_strdup("/usr/local/bin");
-		data->paths[1] = ft_strdup("/usr/bin");
-		data->paths[2] = ft_strdup("/bin");
-		data->paths[3] = ft_strdup("/usr/sbin");
-		data->paths[4] = ft_strdup("/sbin");
-		data->paths[5] = NULL;
-		i = -1;
-		while (++i < 5)
-			if (!data->paths[i])
-				ft_cleanup(data, "Failed to get PATH", NULL, 1);
+		data->def_paths[0] = "/usr/local/bin";
+		data->def_paths[1] = "/usr/bin";
+		data->def_paths[2] = "/bin";
+		data->def_paths[3] = "/usr/sbin";
+		data->def_paths[4] = "/sbin";
+		data->paths = data->def_paths;
 		return ;
 	}
+	data->env = 1;
 	while (env && *env && ft_strncmp(*env, "PATH=", 5) != 0)
 		env++;
 	data->paths = ft_split(*env + 5, ':');
 	if (!data->paths)
-		ft_cleanup(data, "Failed to get PATH", NULL, 1);
+		ft_cleanup(data, "Failed to get PATH", 1);
 }
 
 static void	ft_init_io(t_pipex *data, char *infile, char *outfile)
@@ -51,7 +43,7 @@ static void	ft_init_io(t_pipex *data, char *infile, char *outfile)
 	else
 		data->io_fd[1] = open(outfile, O_WRONLY | O_CREAT | O_TRUNC, 0644);
 	if (data->io_fd[1] == -1)
-		ft_cleanup(data, "Failed to open outfile", NULL, 1);
+		ft_cleanup(data, "Failed to open outfile", 1);
 	if (access(infile, F_OK | R_OK) == -1)
 	{
 		perror("pipex: line 1: input");
@@ -60,7 +52,7 @@ static void	ft_init_io(t_pipex *data, char *infile, char *outfile)
 	else
 		data->io_fd[0] = open(infile, O_RDONLY);
 	if (data->io_fd[0] == -1)
-		ft_cleanup(data, "Failed to open infile", NULL, 1);
+		ft_cleanup(data, "Failed to open infile", 1);
 }
 
 static void	ft_pipeline(t_pipex *data, char *argv[], char **env)
@@ -73,21 +65,22 @@ static void	ft_pipeline(t_pipex *data, char *argv[], char **env)
 	ft_get_paths(data, env);
 	ft_memset(data->pipe_fd, -1, sizeof(data->pipe_fd));
 	if (pipe(data->pipe_fd) == -1)
-		ft_cleanup(data, "pipe failed", NULL, 1);
+		ft_cleanup(data, "pipe failed", 1);
 	i = -1;
 	while (++i < 2)
 	{
 		data->pid[i] = fork();
 		if (data->pid[i] == -1)
-			ft_cleanup(data, "fork failed", NULL, 1);
+			ft_cleanup(data, "fork failed", 1);
+		data->curr_cmd = data->cmd[i];
 		if (data->pid[i] == 0)
 			ft_child(data, env, &i);
 	}
-	ft_cleanup(data, NULL, NULL, 0);
+	ft_cleanup(data, NULL, 0);
 	i = -1;
 	while (++i < 2)
 		if (waitpid(data->pid[i], &data->status, 0) == -1)
-			ft_cleanup(NULL, "waitpid failed", NULL, 1);
+			ft_cleanup(NULL, "waitpid failed", 1);
 }
 
 int	main(int argc, char *argv[], char **env)
