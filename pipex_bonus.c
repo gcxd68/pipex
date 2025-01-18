@@ -25,11 +25,11 @@ static void	ft_get_paths(t_pipex *data, char **env)
 		return ;
 	}
 	data->env = 1;
-	while (env && *env && ft_strncmp(*env, "PATH=", 5) != 0)
+	while (ft_strncmp(*env, "PATH=", 5) != 0)
 		env++;
 	data->paths = ft_split(*env + 5, ':');
 	if (!data->paths)
-		ft_cleanup(data, "Failed to get PATH", 1);
+		ft_cleanup(data, "pipex: failed to get PATH", 1);
 }
 
 static void	ft_init_io(t_pipex *data, char *infile, char *outfile)
@@ -45,7 +45,7 @@ static void	ft_init_io(t_pipex *data, char *infile, char *outfile)
 	else
 		data->io_fd[1] = open(outfile, O_WRONLY | O_CREAT | O_TRUNC, 0644);
 	if (data->io_fd[1] == -1)
-		ft_cleanup(data, "Failed to open outfile", 1);
+		ft_cleanup(data, "pipex: failed to open outfile", 1);
 	if (data->here_doc)
 		return ;
 	if (access(infile, F_OK | R_OK) == -1)
@@ -56,7 +56,7 @@ static void	ft_init_io(t_pipex *data, char *infile, char *outfile)
 	else
 		data->io_fd[0] = open(infile, O_RDONLY);
 	if (data->io_fd[0] == -1)
-		ft_cleanup(data, "Failed to open infile", 1);
+		ft_cleanup(data, "pipex: failed to open infile", 1);
 }
 
 static void	ft_init_data(t_pipex *data, char *argv[])
@@ -65,22 +65,22 @@ static void	ft_init_data(t_pipex *data, char *argv[])
 
 	data->pid = malloc(sizeof(pid_t) * data->cmd_ct);
 	if (!data->pid)
-		ft_cleanup(data, "Failed to allocate memory for pids", 1);
+		ft_cleanup(data, "pipex: pid array failure", 1);
 	data->cmd = ft_calloc(data->cmd_ct + 1, sizeof(char *));
 	if (!data->cmd)
-		ft_cleanup(data, "Failed to allocate memory for cmds", 1);
+		ft_cleanup(data, "pipex: cmd array failure", 1);
 	i = -1;
 	while (++i < data->cmd_ct)
 		data->cmd[i] = argv[i + 2 + data->here_doc];
 	data->pipe_fd = malloc(sizeof(int *) * (data->cmd_ct - 1));
 	if (!data->pipe_fd)
-		ft_cleanup(data, "Failed to allocate memory for pipes", 1);
+		ft_cleanup(data, "pipex: pipe array failure", 1);
 	i = -1;
 	while (++i < data->cmd_ct - 1)
 	{
 		data->pipe_fd[i] = malloc(sizeof(int) * 2);
 		if (!data->pipe_fd[i])
-			ft_cleanup(data, "Failed to allocate memory for a pipe", 1);
+			ft_cleanup(data, "pipex: pipe array failure", 1);
 		ft_memset(data->pipe_fd[i], -1, sizeof(int) * 2);
 	}
 	ft_memset(data->hd_fd, -1, sizeof(data->hd_fd));
@@ -94,20 +94,20 @@ static void	ft_pipeline(t_pipex *data, char *argv[], char **env)
 	if (data->here_doc)
 	{
 		if (pipe(data->hd_fd) == -1)
-			ft_cleanup(data, "Failed to create here_doc pipe", 1);
+			ft_cleanup(data, "pipex: here_doc pipe failed", 1);
 		ft_here_doc(data, argv[2]);
 		data->io_fd[0] = data->hd_fd[0];
 	}
 	i = -1;
 	while (++i < data->cmd_ct - 1)
 		if (pipe(data->pipe_fd[i]) == -1)
-			ft_cleanup(data, "pipe failed", 1);
+			ft_cleanup(data, "pipex: pipe failed", 1);
 	i = -1;
 	while (++i < data->cmd_ct)
 	{
 		data->pid[i] = fork();
 		if (data->pid[i] == -1)
-			ft_cleanup(data, "fork failed", 1);
+			ft_cleanup(data, "pipex: fork failed", 1);
 		data->curr_cmd = data->cmd[i];
 		if (data->pid[i] == 0)
 			ft_child(data, env, &i);
@@ -132,7 +132,7 @@ int	main(int argc, char *argv[], char **env)
 	i = -1;
 	while (++i < data.cmd_ct)
 		if (waitpid(data.pid[i], &data.status, 0) == -1)
-			ft_cleanup(NULL, "waitpid failed", 1);
+			ft_cleanup(NULL, "pipex: waitpid failed", 1);
 	if (data.pid)
 		free(data.pid);
 	if (data.wprot == 1)

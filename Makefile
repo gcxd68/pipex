@@ -14,11 +14,9 @@ SRC =			pipex.c \
 				pipex_utils.c \
 				pipex_splitter.c
 
-
 SRCB =			pipex_bonus.c \
 				pipex_utils_bonus.c \
 				pipex_splitter_bonus.c
-
 
 OBJ =			$(SRC:.c=.o)
 OBJB =			$(SRCB:.c=.o)

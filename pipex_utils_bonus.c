@@ -62,7 +62,7 @@ void	ft_cleanup(t_pipex *data, char *error_msg, int status)
 	if (status == 127)
 		ft_fprintf(2, error_msg, data->curr_cmd);
 	else if (error_msg)
-		ft_fprintf(2, "%s: %s\n", error_msg, strerror(errno));
+		perror(error_msg);
 	if (status > 0)
 		exit(status);
 }
@@ -99,7 +99,7 @@ void	ft_here_doc(t_pipex *data, char *limiter)
 {
 	data->hd_pid = fork();
 	if (data->hd_pid == -1)
-		ft_cleanup(data, "Failed to fork for here_doc", 1);
+		ft_cleanup(data, "pipex: here_doc fork failed", 1);
 	if (data->hd_pid == 0)
 	{
 		while (1)
@@ -128,21 +128,21 @@ void	ft_child(t_pipex *data, char **env, int *i)
 {
 	if (*i == 0)
 		if (dup2(data->io_fd[0], 0) == -1 || dup2(data->pipe_fd[0][1], 1) == -1)
-			ft_cleanup(data, "dup2 failed", 1);
+			ft_cleanup(data, "pipex: dup2 failed", 1);
 	if (*i == data->cmd_ct - 1)
 		if (dup2(data->pipe_fd[data->cmd_ct - 2][0], 0) == -1
 			|| dup2(data->io_fd[1], 1) == -1)
-			ft_cleanup(data, "dup2 failed", 1);
+			ft_cleanup(data, "pipex: dup2 failed", 1);
 	if (*i > 0 && *i < data->cmd_ct - 1)
 		if (dup2(data->pipe_fd[*i - 1][0], 0) == -1
 			|| dup2(data->pipe_fd[*i][1], 1) == -1)
-			ft_cleanup(data, "dup2 failed", 1);
+			ft_cleanup(data, "pipex: dup2 failed", 1);
 	ft_close_fds(data);
 	if (ft_split_args(&data->args, data->curr_cmd) < 0)
-		ft_cleanup(data, "Failed to split cmd", 1);
+		ft_cleanup(data, "pipex: failed to split cmd", 1);
 	data->cmd_path = ft_find_cmd_path(data->args[0], data->paths);
 	if (!data->cmd_path)
 		ft_cleanup(data, "pipex: line 1: %s: command not found\n", 127);
 	execve(data->cmd_path, data->args, env);
-	ft_cleanup(data, "execve failed", 1);
+	ft_cleanup(data, "pipex: execve failed", 1);
 }
