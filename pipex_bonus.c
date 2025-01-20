@@ -14,22 +14,23 @@
 
 static void	ft_get_paths(t_pipex *data, char **env)
 {
-	if (!env || !*env)
+	if (env && *env)
 	{
-		data->def_paths[0] = "/usr/local/bin";
-		data->def_paths[1] = "/usr/bin";
-		data->def_paths[2] = "/bin";
-		data->def_paths[3] = "/usr/sbin";
-		data->def_paths[4] = "/sbin";
-		data->paths = data->def_paths;
-		return ;
+		data->env = 1;
+		while (ft_strncmp(*env, "PATH=", 5) != 0)
+			env++;
+		data->paths = ft_split(*env + 5, ':');
+		if (!data->paths || !data->paths[0])
+			perror("pipex: failed to split PATH");
+		else
+			return ;
 	}
-	data->env = 1;
-	while (ft_strncmp(*env, "PATH=", 5) != 0)
-		env++;
-	data->paths = ft_split(*env + 5, ':');
-	if (!data->paths)
-		ft_cleanup(data, "pipex: failed to get PATH", 1);
+	data->def_paths[0] = "/usr/local/bin";
+	data->def_paths[1] = "/usr/bin";
+	data->def_paths[2] = "/bin";
+	data->def_paths[3] = "/usr/sbin";
+	data->def_paths[4] = "/sbin";
+	data->paths = data->def_paths;
 }
 
 static void	ft_init_io(t_pipex *data, char *infile, char *outfile)
@@ -37,7 +38,7 @@ static void	ft_init_io(t_pipex *data, char *infile, char *outfile)
 	ft_memset(data->io_fd, -1, sizeof(data->io_fd));
 	if (access(outfile, F_OK) == 0 && access(outfile, W_OK) == -1)
 	{
-		data->wprot = 1;
+		data->outfile = outfile;
 		data->io_fd[1] = open("/dev/null", O_WRONLY);
 	}
 	else if (data->here_doc)
@@ -50,7 +51,7 @@ static void	ft_init_io(t_pipex *data, char *infile, char *outfile)
 		return ;
 	if (access(infile, F_OK | R_OK) == -1)
 	{
-		perror("pipex: line 1: input");
+		ft_fprintf(2, "pipex: %s: %s\n", infile, strerror(errno));
 		data->io_fd[0] = open("/dev/null", O_RDONLY);
 	}
 	else
@@ -135,9 +136,9 @@ int	main(int argc, char *argv[], char **env)
 			ft_cleanup(NULL, "pipex: waitpid failed", 1);
 	if (data.pid)
 		free(data.pid);
-	if (data.wprot == 1)
-		return (ft_fprintf(2, "pipex: outfile: %s\n",
-				strerror(EACCES)), data.wprot);
+	if (data.outfile)
+		return (ft_fprintf(2, "pipex: %s: %s\n", data.outfile,
+				strerror(EACCES)), 1);
 	if (WIFEXITED(data.status))
 		return (WEXITSTATUS(data.status));
 	return (1);

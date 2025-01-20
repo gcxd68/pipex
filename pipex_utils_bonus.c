@@ -142,7 +142,7 @@ void	ft_child(t_pipex *data, char **env, int *i)
 		ft_cleanup(data, "pipex: failed to split cmd", 1);
 	data->cmd_path = ft_find_cmd_path(data->args[0], data->paths);
 	if (!data->cmd_path)
-		ft_cleanup(data, "pipex: line 1: %s: command not found\n", 127);
+		ft_cleanup(data, "%s: command not found\n", 127);
 	execve(data->cmd_path, data->args, env);
 	ft_cleanup(data, "pipex: execve failed", 1);
 }
