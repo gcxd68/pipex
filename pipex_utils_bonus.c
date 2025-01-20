@@ -59,8 +59,8 @@ void	ft_cleanup(t_pipex *data, char *error_msg, int status)
 		if (data->pid && (status > 0 || data->hd_pid == 0))
 			free(data->pid);
 	}
-	if (status == 127)
-		ft_fprintf(2, error_msg, data->curr_cmd);
+	if (error_msg && status == 127)
+		ft_fprintf(2, "%s: command not found\n", data->curr_cmd);
 	else if (error_msg)
 		perror(error_msg);
 	if (status > 0 || data->hd_pid == 0)
@@ -141,7 +141,12 @@ void	ft_child(t_pipex *data, char **env, int *i)
 		ft_cleanup(data, "pipex: failed to split cmd", 1);
 	data->cmd_path = ft_find_cmd_path(data->args[0], data->paths);
 	if (!data->cmd_path)
+	{
+		if ((data->infile && *i == 0) || 
+			(data->outfile && *i == data->cmd_ct - 1))
+			ft_cleanup(data, NULL, 127);
 		ft_cleanup(data, "%s: command not found\n", 127);
+	}
 	execve(data->cmd_path, data->args, env);
 	ft_cleanup(data, "pipex: execve failed", 1);
 }

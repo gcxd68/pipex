@@ -51,7 +51,8 @@ static void	ft_init_io(t_pipex *data, char *infile, char *outfile)
 		return ;
 	if (access(infile, F_OK | R_OK) == -1)
 	{
-		ft_fprintf(2, "pipex: %s: %s\n", infile, strerror(errno));
+		data->errno_bkp = errno;
+		data->infile = infile;
 		data->io_fd[0] = open("/dev/null", O_RDONLY);
 	}
 	else
@@ -138,9 +139,12 @@ int	main(int argc, char *argv[], char **env)
 			ft_cleanup(NULL, "pipex: waitpid failed", 1);
 	if (data.pid)
 		free(data.pid);
+	if (data.infile)
+		ft_fprintf(2, "pipex: %s: %s\n", data.infile, strerror(data.errno_bkp));
 	if (data.outfile)
-		return (ft_fprintf(2, "pipex: %s: %s\n", data.outfile,
-				strerror(EACCES)), 1);
+		ft_fprintf(2, "pipex: %s: %s\n", data.outfile, strerror(EACCES));
+	if (data.infile || data.outfile)
+		return (1);
 	if (WIFEXITED(data.status))
 		return (WEXITSTATUS(data.status));
 	return (1);

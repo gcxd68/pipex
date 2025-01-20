@@ -29,6 +29,7 @@ typedef struct s_pipex
 	char	*def_paths[6];
 	char	*cmd_path;
 	char	*curr_cmd;
+	char	*infile;
 	char	*line;
 	char	*outfile;
 	pid_t	*pid;
@@ -36,6 +37,7 @@ typedef struct s_pipex
 	int		io_fd[2];
 	int		cmd_ct;
 	int		env;
+	int		errno_bkp;
 	int		here_doc;
 	int		status;
 	pid_t	hd_pid;

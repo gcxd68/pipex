@@ -28,11 +28,13 @@ typedef struct s_pipex
 	char	*def_paths[6];
 	char	*cmd_path;
 	char	*curr_cmd;
+	char	*infile;
 	char	*outfile;
 	int		io_fd[2];
 	int		pipe_fd[2];
 	pid_t	pid[2];
 	int		env;
+	int		errno_bkp;
 	int		status;
 	int		wprot;
 }	t_pipex;
