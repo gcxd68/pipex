@@ -67,6 +67,7 @@ static void	ft_init_data(t_pipex *data, char *argv[])
 	data->pid = malloc(sizeof(pid_t) * data->cmd_ct);
 	if (!data->pid)
 		ft_cleanup(data, "pipex: pid array failure", 1);
+	ft_memset(data->pid, -1, sizeof(pid_t) * data->cmd_ct);
 	data->cmd = ft_calloc(data->cmd_ct + 1, sizeof(char *));
 	if (!data->cmd)
 		ft_cleanup(data, "pipex: cmd array failure", 1);
@@ -85,6 +86,7 @@ static void	ft_init_data(t_pipex *data, char *argv[])
 		ft_memset(data->pipe_fd[i], -1, sizeof(int) * 2);
 	}
 	ft_memset(data->hd_fd, -1, sizeof(data->hd_fd));
+	data->hd_pid = -1;
 }
 
 static void	ft_pipeline(t_pipex *data, char *argv[], char **env)

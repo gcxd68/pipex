@@ -56,14 +56,14 @@ void	ft_cleanup(t_pipex *data, char *error_msg, int status)
 			free(data->cmd);
 		if (data->cmd_path)
 			free(data->cmd_path);
-		if (data->pid && status > 0)
+		if (data->pid && (status > 0 || data->hd_pid == 0))
 			free(data->pid);
 	}
 	if (status == 127)
 		ft_fprintf(2, error_msg, data->curr_cmd);
 	else if (error_msg)
 		perror(error_msg);
-	if (status > 0)
+	if (status > 0 || data->hd_pid == 0)
 		exit(status);
 }
 
@@ -104,7 +104,7 @@ void	ft_here_doc(t_pipex *data, char *limiter)
 	{
 		while (1)
 		{
-			write(1, "heredoc> ", 9);
+			write(1, "> ", 2);
 			data->line = get_next_line(0);
 			if (!data->line)
 				break ;
@@ -117,8 +117,7 @@ void	ft_here_doc(t_pipex *data, char *limiter)
 			write(data->hd_fd[1], data->line, ft_strlen(data->line));
 			free(data->line);
 		}
-		ft_close_fds(data);
-		exit(0);
+		ft_cleanup(data, NULL, 0);
 	}
 	close(data->hd_fd[1]);
 	waitpid(data->hd_pid, NULL, 0);

@@ -67,6 +67,7 @@ static void	ft_pipeline(t_pipex *data, char *argv[], char **env)
 	ft_memset(data->pipe_fd, -1, sizeof(data->pipe_fd));
 	if (pipe(data->pipe_fd) == -1)
 		ft_cleanup(data, "pipex: pipe failed", 1);
+	ft_memset(data->pid, -1, sizeof(data->pid));
 	i = -1;
 	while (++i < 2)
 	{
