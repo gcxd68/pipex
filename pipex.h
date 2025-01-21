@@ -35,6 +35,8 @@ typedef struct s_pipex
 	pid_t	pid[2];
 	int		env;
 	int		errno_bkp;
+	int		in_err;
+	int		out_err;
 	int		status;
 	int		wprot;
 }	t_pipex;

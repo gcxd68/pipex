@@ -38,7 +38,7 @@ static void	ft_init_io(t_pipex *data, char *infile, char *outfile)
 	ft_memset(data->io_fd, -1, sizeof(data->io_fd));
 	if (access(outfile, F_OK) == 0 && access(outfile, W_OK) == -1)
 	{
-		data->outfile = outfile;
+		data->out_err = 1;
 		data->io_fd[1] = open("/dev/null", O_WRONLY);
 	}
 	else if (data->here_doc)
@@ -52,7 +52,7 @@ static void	ft_init_io(t_pipex *data, char *infile, char *outfile)
 	if (access(infile, F_OK | R_OK) == -1)
 	{
 		data->errno_bkp = errno;
-		data->infile = infile;
+		data->in_err = 1;
 		data->io_fd[0] = open("/dev/null", O_RDONLY);
 	}
 	else
@@ -94,14 +94,16 @@ static void	ft_pipeline(t_pipex *data, char *argv[], char **env)
 {
 	int	i;
 
-	ft_get_paths(data, env);
 	if (data->here_doc)
 	{
-		if (pipe(data->hd_fd) == -1)
-			ft_cleanup(data, "pipex: here_doc pipe failed", 1);
 		ft_here_doc(data, argv[2]);
+		waitpid(data->hd_pid, NULL, 0);
 		data->io_fd[0] = data->hd_fd[0];
 	}
+	if (data->in_err)
+		ft_fprintf(2, "pipex: %s: %s\n", argv[1], strerror(data->errno_bkp));
+	if (data->out_err)
+		ft_fprintf(2, "pipex: %s: %s\n", argv[data->cmd_ct + 2], strerror(13));
 	i = -1;
 	while (++i < data->cmd_ct - 1)
 		if (pipe(data->pipe_fd[i]) == -1)
@@ -112,11 +114,9 @@ static void	ft_pipeline(t_pipex *data, char *argv[], char **env)
 		data->pid[i] = fork();
 		if (data->pid[i] == -1)
 			ft_cleanup(data, "pipex: fork failed", 1);
-		data->curr_cmd = data->cmd[i];
 		if (data->pid[i] == 0)
 			ft_child(data, env, &i);
 	}
-	ft_cleanup(data, NULL, 0);
 }
 
 int	main(int argc, char *argv[], char **env)
@@ -132,20 +132,16 @@ int	main(int argc, char *argv[], char **env)
 				"./pipex here_doc LIMITER cmd1 ... cmdn file\n", 85), 1);
 	ft_init_io(&data, argv[1], argv[data.cmd_ct + 2 + data.here_doc]);
 	ft_init_data(&data, argv);
+	ft_get_paths(&data, env);
 	ft_pipeline(&data, argv, env);
+	ft_cleanup(&data, NULL, 0);
 	i = -1;
 	while (++i < data.cmd_ct)
 		if (waitpid(data.pid[i], &data.status, 0) == -1)
 			ft_cleanup(NULL, "pipex: waitpid failed", 1);
 	if (data.pid)
 		free(data.pid);
-	if (data.infile)
-		ft_fprintf(2, "pipex: %s: %s\n", data.infile, strerror(data.errno_bkp));
-	if (data.outfile)
-		ft_fprintf(2, "pipex: %s: %s\n", data.outfile, strerror(EACCES));
-	if (data.infile || data.outfile)
-		return (1);
-	if (WIFEXITED(data.status))
+	if (!data.out_err && WIFEXITED(data.status))
 		return (WEXITSTATUS(data.status));
 	return (1);
 }

@@ -60,7 +60,7 @@ void	ft_cleanup(t_pipex *data, char *error_msg, int status)
 			free(data->pid);
 	}
 	if (error_msg && status == 127)
-		ft_fprintf(2, "%s: command not found\n", data->curr_cmd);
+		ft_fprintf(2, error_msg, data->curr_cmd);
 	else if (error_msg)
 		perror(error_msg);
 	if (status > 0 || data->hd_pid == 0)
@@ -97,6 +97,8 @@ static char	*ft_find_cmd_path(char *cmd, char **path)
 
 void	ft_here_doc(t_pipex *data, char *limiter)
 {
+	if (pipe(data->hd_fd) == -1)
+		ft_cleanup(data, "pipex: here_doc pipe failed", 1);
 	data->hd_pid = fork();
 	if (data->hd_pid == -1)
 		ft_cleanup(data, "pipex: here_doc fork failed", 1);
@@ -120,11 +122,11 @@ void	ft_here_doc(t_pipex *data, char *limiter)
 		ft_cleanup(data, NULL, 0);
 	}
 	close(data->hd_fd[1]);
-	waitpid(data->hd_pid, NULL, 0);
 }
 
 void	ft_child(t_pipex *data, char **env, int *i)
 {
+	data->curr_cmd = data->cmd[*i];
 	if (*i == 0)
 		if (dup2(data->io_fd[0], 0) == -1 || dup2(data->pipe_fd[0][1], 1) == -1)
 			ft_cleanup(data, "pipex: dup2 failed", 1);
@@ -142,8 +144,8 @@ void	ft_child(t_pipex *data, char **env, int *i)
 	data->cmd_path = ft_find_cmd_path(data->args[0], data->paths);
 	if (!data->cmd_path)
 	{
-		if ((data->infile && *i == 0) || 
-			(data->outfile && *i == data->cmd_ct - 1))
+		if ((data->in_err && *i == 0)
+			|| (data->out_err && *i == data->cmd_ct - 1))
 			ft_cleanup(data, NULL, 127);
 		ft_cleanup(data, "%s: command not found\n", 127);
 	}

@@ -38,7 +38,7 @@ static void	ft_init_io(t_pipex *data, char *infile, char *outfile)
 	ft_memset(data->io_fd, -1, sizeof(data->io_fd));
 	if (access(outfile, F_OK) == 0 && access(outfile, W_OK) == -1)
 	{
-		data->outfile = outfile;
+		data->out_err = 1;
 		data->io_fd[1] = open("/dev/null", O_WRONLY);
 	}
 	else
@@ -48,7 +48,7 @@ static void	ft_init_io(t_pipex *data, char *infile, char *outfile)
 	if (access(infile, F_OK | R_OK) == -1)
 	{
 		data->errno_bkp = errno;
-		data->infile = infile;
+		data->in_err = 1;
 		data->io_fd[0] = open("/dev/null", O_RDONLY);
 	}
 	else
@@ -61,47 +61,45 @@ static void	ft_pipeline(t_pipex *data, char *argv[], char **env)
 {
 	int	i;
 
-	i = -1;
-	while (++i < 2)
-		data->cmd[i] = argv[i + 2];
-	ft_get_paths(data, env);
 	ft_memset(data->pipe_fd, -1, sizeof(data->pipe_fd));
 	if (pipe(data->pipe_fd) == -1)
 		ft_cleanup(data, "pipex: pipe failed", 1);
 	ft_memset(data->pid, -1, sizeof(data->pid));
+	if (data->in_err)
+		ft_fprintf(2, "pipex: %s: %s\n", argv[1], strerror(data->errno_bkp));
+	if (data->out_err)
+		ft_fprintf(2, "pipex: %s: %s\n", argv[4], strerror(13));
 	i = -1;
 	while (++i < 2)
 	{
 		data->pid[i] = fork();
 		if (data->pid[i] == -1)
 			ft_cleanup(data, "pipex: fork failed", 1);
-		data->curr_cmd = data->cmd[i];
 		if (data->pid[i] == 0)
 			ft_child(data, env, &i);
 	}
-	ft_cleanup(data, NULL, 0);
-	i = -1;
-	while (++i < 2)
-		if (waitpid(data->pid[i], &data->status, 0) == -1)
-			ft_cleanup(NULL, "pipex: waitpid failed", 1);
 }
 
 int	main(int argc, char *argv[], char **env)
 {
 	t_pipex	data;
+	int		i;
 
 	if (argc != 5)
 		return (write(2, "Usage: ./pipex file1 cmd1 cmd2 file2\n", 37), 1);
 	data = (t_pipex){0};
 	ft_init_io(&data, argv[1], argv[4]);
+	i = -1;
+	while (++i < 2)
+		data.cmd[i] = argv[i + 2];
+	ft_get_paths(&data, env);
 	ft_pipeline(&data, argv, env);
-	if (data.infile)
-		ft_fprintf(2, "pipex: %s: %s\n", data.infile, strerror(data.errno_bkp));
-	if (data.outfile)
-		ft_fprintf(2, "pipex: %s: %s\n", data.outfile, strerror(EACCES));
-	if (data.infile || data.outfile)
-		return (1);
-	if (WIFEXITED(data.status))
+	ft_cleanup(&data, NULL, 0);
+	i = -1;
+	while (++i < 2)
+		if (waitpid(data.pid[i], &data.status, 0) == -1)
+			ft_cleanup(NULL, "pipex: waitpid failed", 1);
+	if (!data.out_err && WIFEXITED(data.status))
 		return (WEXITSTATUS(data.status));
 	return (1);
 }
