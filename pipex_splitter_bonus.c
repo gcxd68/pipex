@@ -82,8 +82,8 @@ static int	ft_split_core(char ***args, char *cmd)
 	i = -1;
 	while (cmd[++i])
 	{
-		if (cmd[i] == ' ')
-			continue ;
+		while (cmd[i] == ' ')
+			i++;
 		start_idx = i;
 		while (cmd[i] && (cmd[i] != ' ' || quote[0] || quote[1]))
 			ft_is_quote(cmd, i++, quote);

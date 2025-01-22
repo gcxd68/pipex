@@ -48,7 +48,7 @@ void	ft_cleanup(t_pipex *data, char *error_msg, int status)
 		ft_close_fds(data);
 		if (data->pipe_fd)
 			ft_free_int_arr(data->pipe_fd, data->cmd_ct - 1);
-		if (data->paths && data->env)
+		if (data->paths)
 			ft_free_arr((void **)data->paths);
 		if (data->args)
 			ft_free_arr((void **)data->args);
@@ -95,7 +95,7 @@ static char	*ft_find_cmd_path(char *cmd, char **path)
 	return (NULL);
 }
 
-void	ft_here_doc(t_pipex *data, char *limiter)
+void	ft_here_doc(t_pipex *data, char *limiter, size_t limiter_len)
 {
 	if (pipe(data->hd_fd) == -1)
 		ft_cleanup(data, "pipex: here_doc pipe failed", 1);
@@ -108,10 +108,8 @@ void	ft_here_doc(t_pipex *data, char *limiter)
 		{
 			write(1, "> ", 2);
 			data->line = get_next_line(0);
-			if (!data->line)
-				break ;
-			if (ft_strncmp(data->line, limiter, ft_strlen(limiter)) == 0
-				&& data->line[ft_strlen(limiter)] == '\n')
+			if (!data->line || (ft_strncmp(data->line, limiter,
+						limiter_len) == 0 && data->line[limiter_len] == '\n'))
 			{
 				free(data->line);
 				break ;
@@ -122,6 +120,8 @@ void	ft_here_doc(t_pipex *data, char *limiter)
 		ft_cleanup(data, NULL, 0);
 	}
 	close(data->hd_fd[1]);
+	waitpid(data->hd_pid, NULL, 0);
+	data->io_fd[0] = data->hd_fd[0];
 }
 
 void	ft_child(t_pipex *data, char **env, int *i)

@@ -31,7 +31,7 @@ void	ft_cleanup(t_pipex *data, char *error_msg, int status)
 	if (data)
 	{
 		ft_close_fds(data);
-		if (data->paths && data->env)
+		if (data->paths)
 			ft_free_arr((void **)data->paths);
 		if (data->args)
 			ft_free_arr((void **)data->args);

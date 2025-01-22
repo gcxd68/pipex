@@ -25,7 +25,6 @@ typedef struct s_pipex
 	char	**args;
 	char	**paths;
 	char	*cmd[2];
-	char	*def_paths[6];
 	char	*cmd_path;
 	char	*curr_cmd;
 	char	*infile;
@@ -33,12 +32,8 @@ typedef struct s_pipex
 	int		io_fd[2];
 	int		pipe_fd[2];
 	pid_t	pid[2];
-	int		env;
-	int		errno_bkp;
 	int		in_err;
 	int		out_err;
-	int		status;
-	int		wprot;
 }	t_pipex;
 
 void	ft_child(t_pipex *data, char **env, int *i);

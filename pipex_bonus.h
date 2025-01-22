@@ -26,7 +26,6 @@ typedef struct s_pipex
 	char	**cmd;
 	char	**paths;
 	int		**pipe_fd;
-	char	*def_paths[6];
 	char	*cmd_path;
 	char	*curr_cmd;
 	char	*line;
@@ -34,18 +33,15 @@ typedef struct s_pipex
 	int		hd_fd[2];
 	int		io_fd[2];
 	int		cmd_ct;
-	int		env;
-	int		errno_bkp;
 	int		here_doc;
 	int		in_err;
 	int		out_err;
-	int		status;
 	pid_t	hd_pid;
 }	t_pipex;
 
 void	ft_child(t_pipex *data, char **env, int *i);
 void	ft_cleanup(t_pipex *data, char *error_msg, int status);
-void	ft_here_doc(t_pipex *data, char *limiter);
+void	ft_here_doc(t_pipex *data, char *limiter, size_t limiter_len);
 int		ft_split_args(char ***args, char *cmd);
 
 #endif
