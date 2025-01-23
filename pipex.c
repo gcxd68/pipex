@@ -23,7 +23,7 @@ static void	ft_get_paths(t_pipex *data, char **env)
 		data->paths = ft_split(*env + 5, ':');
 	}
 	else
-		data->paths = NULL;//ft_split(def_paths, ':');
+		data->paths = ft_split(def_paths, ':');
 	if (!data->paths || !data->paths[0])
 		ft_cleanup(data, "pipex: failed to split PATH", 1);
 }
