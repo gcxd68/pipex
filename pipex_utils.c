@@ -51,7 +51,7 @@ static char	*ft_find_cmd_path(char *cmd, char **path)
 	char	*full_path;
 	size_t	i;
 
-	if (cmd[0] == '/' || (cmd[0] == '.' && cmd[1] == '/'))
+	if (ft_strchr(cmd, '/'))
 	{
 		if (access(cmd, F_OK | X_OK) == 0)
 			return (ft_strdup(cmd));

@@ -102,13 +102,12 @@ int	ft_split_args(char ***args, char *cmd)
 {
 	if (access(cmd, F_OK) == 0)
 	{
-		*args = malloc(sizeof(char *) * 2);
+		*args = ft_calloc(2, sizeof(char *));
 		if (!*args)
 			return (-1);
 		(*args)[0] = ft_strdup(cmd);
 		if (!(*args)[0])
 			return (-1);
-		(*args)[1] = NULL;
 	}
 	if (ft_split_core(args, cmd) < 0)
 		return (-1);
