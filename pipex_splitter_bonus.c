@@ -107,9 +107,9 @@ int	ft_split_args(char ***args, char *cmd)
 			return (-1);
 		(*args)[0] = ft_strdup(cmd);
 		if (!(*args)[0])
-			return (-1);
+			return (free(*args), *args = 0, -1);
 	}
-	if (ft_split_core(args, cmd) < 0)
+	else if (ft_split_core(args, cmd) < 0)
 		return (-1);
 	return (0);
 }
