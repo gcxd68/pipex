@@ -65,6 +65,7 @@ void	ft_cleanup(t_pipex *data, char *err_msg, int status)
 		ft_fprintf(2, "%s: %s: %s\n", data->curr_cmd, err_msg, strerror(errno));
 	else if (err_msg)
 		perror(err_msg);
+	status = status - (status * (errno == ENOMEM)) + (errno == ENOMEM);
 	if (status > 0 || data->hd_pid == 0)
 		exit(status);
 }
@@ -142,7 +143,7 @@ void	ft_child(t_pipex *data, char **env, int *i)
 			|| dup2(data->pipe_fd[*i][1], 1) == -1)
 			ft_cleanup(data, "pipex: dup2 failed", 1);
 	ft_close_fds(data);
-	if (ft_split_args(&data->args, data->curr_cmd) < 0)
+	if (ft_split_args(data, i) < 0)
 		ft_cleanup(data, "pipex: failed to split cmd", 1);
 	data->cmd_path = ft_find_cmd_path(data->args[0], data->paths);
 	if (!data->cmd_path)

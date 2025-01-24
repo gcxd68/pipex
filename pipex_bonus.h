@@ -42,6 +42,6 @@ typedef struct s_pipex
 void	ft_child(t_pipex *data, char **env, int *i);
 void	ft_cleanup(t_pipex *data, char *error_msg, int status);
 void	ft_here_doc(t_pipex *data, char *limiter, size_t limiter_len);
-int		ft_split_args(char ***args, char *cmd);
+int		ft_split_args(t_pipex *data, int *i);
 
 #endif
