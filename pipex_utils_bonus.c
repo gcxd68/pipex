@@ -19,7 +19,7 @@ static void	ft_close_fds(t_pipex *data)
 	if (data->pipe_fd)
 	{
 		i = -1;
-		while (++i < data->cmd_ct - 1)
+		while (++i < data->cmd_ct - 1 && data->pipe_fd[i])
 		{
 			if (data->pipe_fd[i][0] != -1)
 				close(data->pipe_fd[i][0]);
@@ -41,7 +41,7 @@ static void	ft_close_fds(t_pipex *data)
 	ft_memset(data->io_fd, -1, sizeof(data->io_fd));
 }
 
-void	ft_cleanup(t_pipex *data, char *error_msg, int status)
+void	ft_cleanup(t_pipex *data, char *err_msg, int status)
 {
 	if (data)
 	{
@@ -59,18 +59,21 @@ void	ft_cleanup(t_pipex *data, char *error_msg, int status)
 		if (data->pid && (status > 0 || data->hd_pid == 0))
 			free(data->pid);
 	}
-	if (error_msg && status == 127)
-		ft_fprintf(2, error_msg, data->curr_cmd);
-	else if (error_msg)
-		perror(error_msg);
+	if (err_msg && status == 127 && errno == ENOENT)
+		ft_fprintf(2, "%s: %s\n", data->curr_cmd, err_msg);
+	else if (err_msg && status == 127)
+		ft_fprintf(2, "%s: %s: %s\n", data->curr_cmd, err_msg, strerror(errno));
+	else if (err_msg)
+		perror(err_msg);
 	if (status > 0 || data->hd_pid == 0)
 		exit(status);
 }
 
 static char	*ft_find_cmd_path(char *cmd, char **path)
 {
-	char	*full_path;
-	size_t	i;
+	const size_t	cmd_len = ft_strlen(cmd);
+	char			*full_path;
+	size_t			i;
 
 	if (ft_strchr(cmd, '/'))
 	{
@@ -81,12 +84,12 @@ static char	*ft_find_cmd_path(char *cmd, char **path)
 	i = 0;
 	while (path[i])
 	{
-		full_path = malloc(ft_strlen(path[i]) + ft_strlen(cmd) + 2);
+		full_path = malloc(ft_strlen(path[i]) + cmd_len + 2);
 		if (!full_path)
 			return (NULL);
 		ft_memcpy(full_path, path[i], ft_strlen(path[i]));
 		full_path[ft_strlen(path[i])] = '/';
-		ft_strlcpy(full_path + ft_strlen(path[i]) + 1, cmd, ft_strlen(cmd) + 1);
+		ft_strlcpy(full_path + ft_strlen(path[i]) + 1, cmd, cmd_len + 1);
 		if (access(full_path, F_OK | X_OK) == 0)
 			return (full_path);
 		free(full_path);
@@ -144,10 +147,10 @@ void	ft_child(t_pipex *data, char **env, int *i)
 	data->cmd_path = ft_find_cmd_path(data->args[0], data->paths);
 	if (!data->cmd_path)
 	{
-		if ((data->in_err && *i == 0)
-			|| (data->out_err && *i == data->cmd_ct - 1))
+		if (errno == ENOENT && ((data->in_err && *i == 0)
+				|| (data->out_err && *i == data->cmd_ct - 1)))
 			ft_cleanup(data, NULL, 127);
-		ft_cleanup(data, "%s: command not found\n", 127);
+		ft_cleanup(data, "command not found", 127);
 	}
 	execve(data->cmd_path, data->args, env);
 	ft_cleanup(data, "pipex: execve failed", 1);
