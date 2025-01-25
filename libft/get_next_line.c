@@ -14,25 +14,20 @@
 
 static ssize_t	ft_build_line(char **line, char **buffer)
 {
-	char	*tmp;
-	size_t	line_len;
-	size_t	chunk_len;
-	size_t	i;
+	char			*tmp;
+	const size_t	line_len = ft_strlen(*line);
+	size_t			chunk_len;
+	size_t			i;
 
 	i = 0;
 	while ((*buffer)[i] && (*buffer)[i] != '\n')
 		i++;
-	line_len = ft_strlen(*line);
 	chunk_len = i + ((*buffer)[i] == '\n');
-	tmp = malloc(line_len + chunk_len + 1);
+	tmp = ft_realloc(*line, line_len + 1, line_len + chunk_len + 1);
 	if (!tmp)
 		return (-1);
-	if (*line)
-		ft_memcpy(tmp, *line, line_len);
-	ft_memcpy(tmp + line_len, *buffer, chunk_len);
-	tmp[line_len + chunk_len] = '\0';
-	free(*line);
 	*line = tmp;
+	ft_strlcpy(*line + line_len, *buffer, chunk_len + 1);
 	return (i);
 }
 
@@ -64,10 +59,9 @@ char	*get_next_line(int fd)
 
 	if (fd < 0 || BUFFER_SIZE < 1)
 		return (NULL);
-	line = malloc (1);
+	line = ft_calloc(1, 1);
 	if (!line)
 		return (NULL);
-	*line = '\0';
 	ret = 1;
 	while (ret > 0)
 		ret = ft_parse_data(fd, buffer, &line);
