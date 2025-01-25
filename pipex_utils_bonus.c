@@ -73,8 +73,8 @@ void	ft_cleanup(t_pipex *data, char *err_msg, int status)
 static char	*ft_find_cmd_path(char *cmd, char **path)
 {
 	const size_t	cmd_len = ft_strlen(cmd);
+	size_t			path_len;
 	char			*full_path;
-	size_t			i;
 
 	if (ft_strchr(cmd, '/'))
 	{
@@ -82,19 +82,19 @@ static char	*ft_find_cmd_path(char *cmd, char **path)
 			return (ft_strdup(cmd));
 		return (NULL);
 	}
-	i = 0;
-	while (path[i])
+	while (*path)
 	{
-		full_path = malloc(ft_strlen(path[i]) + cmd_len + 2);
+		path_len = ft_strlen(*path);
+		full_path = malloc(path_len + cmd_len + 2);
 		if (!full_path)
 			return (NULL);
-		ft_memcpy(full_path, path[i], ft_strlen(path[i]));
-		full_path[ft_strlen(path[i])] = '/';
-		ft_strlcpy(full_path + ft_strlen(path[i]) + 1, cmd, cmd_len + 1);
+		ft_memcpy(full_path, *path, path_len);
+		full_path[path_len] = '/';
+		ft_strlcpy(full_path + path_len + 1, cmd, cmd_len + 1);
 		if (access(full_path, F_OK | X_OK) == 0)
 			return (full_path);
 		free(full_path);
-		i++;
+		path++;
 	}
 	return (NULL);
 }
