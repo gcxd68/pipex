@@ -65,7 +65,7 @@ void	ft_cleanup(t_pipex *data, char *err_msg, int status)
 		ft_fprintf(2, "%s: %s: %s\n", data->curr_cmd, err_msg, strerror(errno));
 	else if (err_msg)
 		perror(err_msg);
-	status = status - (status * (errno == ENOMEM)) + (errno == ENOMEM);
+	status = status - ((status - 1) * (errno == ENOMEM));
 	if (status > 0 || data->hd_pid == 0)
 		exit(status);
 }
