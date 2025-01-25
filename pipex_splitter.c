@@ -98,24 +98,24 @@ static int	ft_split_core(char ***args, char *cmd)
 	return (0);
 }
 
-int	ft_split_args(t_pipex *data, int *i)
+int	ft_split_args(t_pipex *data, int curr)
 {
-	if (access(data->cmd[*i], F_OK) == 0)
+	if (access(data->cmd[curr], F_OK) == 0)
 	{
 		data->args = ft_calloc(2, sizeof(char *));
 		if (!data->args)
 			return (-1);
-		data->args[0] = ft_strdup(data->cmd[*i]);
+		data->args[0] = ft_strdup(data->cmd[curr]);
 		if (!data->args[0])
 			return (free(data->args), data->args = 0, -1);
 	}
-	else if (ft_split_core(&data->args, data->cmd[*i]) < 0)
+	else if (ft_split_core(&data->args, data->cmd[curr]) < 0)
 		return (-1);
 	if (!data->args || !data->args[0] || *data->args[0] == '\0')
 	{
 		data->curr_cmd = "''";
-		if (errno == ENOENT && ((data->in_err && *i == 0)
-				|| (data->out_err && *i == 1)))
+		if (errno == ENOENT && ((data->in_err && curr == 0)
+				|| (data->out_err && curr == 1)))
 			ft_cleanup(data, NULL, 127);
 		ft_cleanup(data, "command not found", 127);
 	}

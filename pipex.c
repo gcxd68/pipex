@@ -73,7 +73,7 @@ static void	ft_pipeline(t_pipex *data, char *argv[], char **env)
 		if (data->pid[i] == -1)
 			ft_cleanup(data, "pipex: fork failed", 1);
 		if (data->pid[i] == 0)
-			ft_child(data, env, &i);
+			ft_child(data, env, i);
 	}
 	ft_cleanup(data, NULL, 0);
 }

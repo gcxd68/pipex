@@ -39,9 +39,9 @@ typedef struct s_pipex
 	pid_t	hd_pid;
 }	t_pipex;
 
-void	ft_child(t_pipex *data, char **env, int *i);
+void	ft_child(t_pipex *data, char **env, int curr);
 void	ft_cleanup(t_pipex *data, char *error_msg, int status);
 void	ft_here_doc(t_pipex *data, char *limiter, size_t limiter_len);
-int		ft_split_args(t_pipex *data, int *i);
+int		ft_split_args(t_pipex *data, int curr);
 
 #endif
