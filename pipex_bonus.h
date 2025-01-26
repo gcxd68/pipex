@@ -41,7 +41,11 @@ typedef struct s_pipex
 
 void	ft_child(t_pipex *data, char **env, int curr);
 void	ft_cleanup(t_pipex *data, char *error_msg, int status);
+void	ft_close_fds(t_pipex *data);
 void	ft_here_doc(t_pipex *data, char *limiter, size_t limiter_len);
+void	ft_invalid_cmd(t_pipex *data, int curr);
+int		ft_is_executable(t_pipex *data);
+void	ft_is_no_directory(t_pipex *data);
 int		ft_split_args(t_pipex *data, int curr);
 
 #endif
