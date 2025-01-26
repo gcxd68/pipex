@@ -60,9 +60,9 @@ void	ft_cleanup(t_pipex *data, char *err_msg, int status)
 			free(data->pid);
 	}
 	if (err_msg && status == 127 && errno == ENOENT)
-		ft_fprintf(2, "%s: %s\n", data->curr_cmd, err_msg);
+		ft_dprintf(2, "%s: %s\n", data->curr_cmd, err_msg);
 	else if (err_msg && status == 127)
-		ft_fprintf(2, "%s: %s: %s\n", data->curr_cmd, err_msg, strerror(errno));
+		ft_dprintf(2, "%s: %s: %s\n", data->curr_cmd, err_msg, strerror(errno));
 	else if (err_msg)
 		perror(err_msg);
 	status = status - ((status - 1) * (errno == ENOMEM));

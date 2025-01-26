@@ -111,7 +111,7 @@ int	ft_split_args(t_pipex *data, int curr)
 	}
 	else if (access(data->cmd[curr], F_OK) == 0)
 	{
-		ft_fprintf(2, "pipex: %s: %s\n", data->cmd[curr], strerror(errno));
+		ft_dprintf(2, "pipex: %s: %s\n", data->cmd[curr], strerror(errno));
 		ft_cleanup(data, NULL, 126);
 	}
 	else if (ft_split_core(&data->args, data->cmd[curr]) < 0)

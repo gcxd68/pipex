@@ -63,9 +63,9 @@ static void	ft_pipeline(t_pipex *data, char *argv[], char **env)
 		ft_cleanup(data, "pipex: pipe failed", 1);
 	ft_memset(data->pid, -1, sizeof(data->pid));
 	if (data->in_err)
-		ft_fprintf(2, "pipex: %s: %s\n", argv[1], strerror(data->in_err));
+		ft_dprintf(2, "pipex: %s: %s\n", argv[1], strerror(data->in_err));
 	if (data->out_err)
-		ft_fprintf(2, "pipex: %s: %s\n", argv[4], strerror(data->out_err));
+		ft_dprintf(2, "pipex: %s: %s\n", argv[4], strerror(data->out_err));
 	i = -1;
 	while (++i < 2)
 	{

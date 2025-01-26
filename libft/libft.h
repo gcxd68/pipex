@@ -32,7 +32,7 @@ typedef struct s_list
 int		ft_atoi(const char *nptr);
 void	ft_bzero(void *s, size_t n);
 void	*ft_calloc(size_t nmemb, size_t size);
-int		ft_fprintf(int fd, const char *format, ...)
+int		ft_dprintf(int fd, const char *format, ...)
 		__attribute__((format(printf, 2, 3)));
 void	ft_free_arr(void **arr);
 void	ft_free_int_arr(int **arr, size_t size);

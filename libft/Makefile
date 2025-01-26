@@ -13,7 +13,7 @@
 SRC =		ft_atoi.c \
 			ft_bzero.c \
 			ft_calloc.c \
-			ft_fprintf.c \
+			ft_dprintf.c \
 			ft_free_arr.c \
 			ft_free_int_arr.c \
 			ft_isalnum.c \

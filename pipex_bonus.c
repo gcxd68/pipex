@@ -92,9 +92,9 @@ static void	ft_pipeline(t_pipex *data, char *argv[], char **env)
 	if (data->here_doc)
 		ft_here_doc(data, argv[2], ft_strlen(argv[2]));
 	if (data->in_err)
-		ft_fprintf(2, "pipex: %s: %s\n", argv[1], strerror(data->in_err));
+		ft_dprintf(2, "pipex: %s: %s\n", argv[1], strerror(data->in_err));
 	if (data->out_err)
-		ft_fprintf(2, "pipex: %s: %s\n",
+		ft_dprintf(2, "pipex: %s: %s\n",
 			argv[data->cmd_ct + 2 + data->here_doc], strerror(data->out_err));
 	i = -1;
 	while (++i < data->cmd_ct - 1)
