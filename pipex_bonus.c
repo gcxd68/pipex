@@ -123,7 +123,7 @@ int	main(int argc, char *argv[], char **env)
 	data.cmd_ct = argc - 3 - data.here_doc;
 	if (data.cmd_ct < 2)
 		return (write(2, "Usage:\n./pipex file1 cmd1 ... cmdn file2\n"
-				"./pipex here_doc LIMITER cmd1 ... cmdn file\n", 85), 1);
+				"./pipex here_doc LIMITER cmd1 ... cmdn file\n", 85), 2);
 	ft_init_io(&data, argv[1], argv[data.cmd_ct + 2 + data.here_doc]);
 	ft_init_data(&data, argv);
 	ft_pipeline(&data, argv, env);

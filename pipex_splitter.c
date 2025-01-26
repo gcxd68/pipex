@@ -100,7 +100,7 @@ static int	ft_split_core(char ***args, char *cmd)
 
 int	ft_split_args(t_pipex *data, int curr)
 {
-	if (access(data->cmd[curr], F_OK) == 0)
+	if (access(data->cmd[curr], F_OK | X_OK) == 0)
 	{
 		data->args = ft_calloc(2, sizeof(char *));
 		if (!data->args)
@@ -108,6 +108,11 @@ int	ft_split_args(t_pipex *data, int curr)
 		data->args[0] = ft_strdup(data->cmd[curr]);
 		if (!data->args[0])
 			return (free(data->args), data->args = 0, -1);
+	}
+	else if (access(data->cmd[curr], F_OK) == 0)
+	{
+		ft_fprintf(2, "pipex: %s: %s\n", data->cmd[curr], strerror(errno));
+		ft_cleanup(data, NULL, 126);
 	}
 	else if (ft_split_core(&data->args, data->cmd[curr]) < 0)
 		return (-1);

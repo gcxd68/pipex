@@ -84,7 +84,7 @@ int	main(int argc, char *argv[], char **env)
 	int		status;
 
 	if (argc != 5)
-		return (write(2, "Usage: ./pipex file1 cmd1 cmd2 file2\n", 37), 1);
+		return (write(2, "Usage: ./pipex file1 cmd1 cmd2 file2\n", 37), 2);
 	data = (t_pipex){0};
 	ft_init_io(&data, argv[1], argv[4]);
 	ft_pipeline(&data, argv, env);
