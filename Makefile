@@ -12,12 +12,12 @@
 
 SRC =			pipex.c \
 				pipex_child.c \
-				pipex_splitter.c \
+				pipex_utils.c \
 				pipex_exit.c
 
 SRCB =			pipex_bonus.c \
 				pipex_child_bonus.c \
-				pipex_splitter_bonus.c \
+				pipex_utils_bonus.c \
 				pipex_exit_bonus.c
 
 OBJ =			$(SRC:.c=.o)
