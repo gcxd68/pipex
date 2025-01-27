@@ -18,10 +18,15 @@ static int	ft_is_executable(t_pipex *data, int curr)
 	{
 		data->args = ft_calloc(2, sizeof(char *));
 		if (!data->args)
-			return (-1);
+			ft_cleanup(data, "pipex: cmd failure", 1);
 		data->args[0] = ft_strdup(data->cmd[curr]);
 		if (!data->args[0])
-			return (free(data->args), data->args = 0, -1);
+		{
+			free(data->args);
+			data->args = NULL;
+			ft_cleanup(data, "pipex: cmd failure", 1);
+		}
+		return (1);
 	}
 	else if (access(data->cmd[curr], F_OK) == 0)
 	{
@@ -31,7 +36,7 @@ static int	ft_is_executable(t_pipex *data, int curr)
 	return (0);
 }
 
-static void	ft_is_no_directory(t_pipex *data)
+static void	ft_is_no_directory(t_pipex *data, int curr)
 {
 	int	fd;
 
@@ -46,7 +51,9 @@ static void	ft_is_no_directory(t_pipex *data)
 	else
 	{
 		close(fd);
-		ft_dprintf(2, "pipex: %s: %s\n", data->args[0], strerror(EISDIR));
+		if (!(data->in_err && curr == 0)
+			&& !(data->out_err && curr == data->cmd_ct - 1))
+			ft_dprintf(2, "pipex: %s: %s\n", data->args[0], strerror(EISDIR));
 		ft_cleanup(data, NULL, 126);
 	}
 }
@@ -84,12 +91,15 @@ static void	ft_invalid_cmd(t_pipex *data, int curr)
 {
 	if (errno == EACCES)
 	{
-		ft_dprintf(2, "pipex: %s: %s\n", data->args[0], strerror(errno));
+		if (!(data->in_err && curr == 0)
+			&& !(data->out_err && curr == data->cmd_ct - 1))
+			ft_dprintf(2, "pipex: %s: %s\n", data->args[0], strerror(errno));
 		ft_cleanup(data, NULL, 126);
 	}
 	else if (errno == ENOENT)
 	{
-		if (!(data->in_err && curr == 0) && !(data->out_err && curr == 1))
+		if (!(data->in_err && curr == 0)
+			&& !(data->out_err && curr == data->cmd_ct - 1))
 		{
 			if (ft_strchr(data->args[0], '/'))
 				ft_dprintf(2, "pipex: %s: %s\n",
@@ -125,10 +135,10 @@ void	ft_child(t_pipex *data, char **env, int curr)
 			|| dup2(data->pipe_fd[curr][1], 1) == -1)
 			ft_cleanup(data, "pipex: dup2 failed", 1);
 	ft_close_fds(data);
-	if (ft_is_executable(data, curr) < 0
-		|| ft_split_args(&data->args, data->cmd[curr]) < 0)
-		ft_cleanup(data, "pipex: failed to split cmd", 1);
-	ft_is_no_directory(data);
+	if (!ft_is_executable(data, curr))
+		if (ft_split_args(&data->args, data->cmd[curr]) < 0)
+			ft_cleanup(data, "pipex: failed to split cmd", 1);
+	ft_is_no_directory(data, curr);
 	if (ft_find_cmd_path(data, data->args[0], data->paths) < 0)
 		ft_invalid_cmd(data, curr);
 	execve(data->cmd_path, data->args, env);

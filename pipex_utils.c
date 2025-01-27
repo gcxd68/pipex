@@ -1,99 +1,45 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   pipex_utils.c                                      :+:      :+:    :+:   */
+/*   pipex_exit.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: gdosch <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/01/12 19:27:58 by gdosch            #+#    #+#             */
-/*   Updated: 2025/01/12 19:27:59 by gdosch           ###   ########.fr       */
+/*   Created: 2025/01/26 14:57:20 by gdosch            #+#    #+#             */
+/*   Updated: 2025/01/26 14:57:22 by gdosch           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "pipex.h"
 
-static char	*ft_copy_arg(char *cmd_idx, int len)
+void	ft_close_fds(t_pipex *data)
 {
-	char	*arg;
-	int		i;
-	int		j;
-
-	arg = malloc(len + 1);
-	if (!arg)
-		return (NULL);
-	i = 0;
-	j = 0;
-	while (i < len)
-	{
-		if (cmd_idx[i] == '\\' && cmd_idx[i + 1]
-			&& ft_strchr("\"'\\", cmd_idx[i + 1]))
-			i++;
-		arg[j++] = cmd_idx[i++];
-	}
-	arg[j] = '\0';
-	return (arg);
+	if (data->pipe_fd[0] != -1)
+		close(data->pipe_fd[0]);
+	if (data->pipe_fd[1] != -1)
+		close(data->pipe_fd[1]);
+	ft_memset(data->pipe_fd, -1, sizeof(data->pipe_fd));
+	if (data->io_fd[0] != -1)
+		close(data->io_fd[0]);
+	if (data->io_fd[1] != -1)
+		close(data->io_fd[1]);
+	ft_memset(data->io_fd, -1, sizeof(data->io_fd));
 }
 
-static int	ft_add_arg(char *cmd_idx, char ***args, int arg_ct, int len)
+void	ft_cleanup(t_pipex *data, char *err_msg, int status)
 {
-	char	**tmp_args;
-	char	*arg;
-
-	arg = ft_copy_arg(cmd_idx, len);
-	if (!arg)
-		return (-1);
-	tmp_args = ft_realloc(*args, (arg_ct + 1) * sizeof(char *),
-			(arg_ct + 2) * sizeof(char *));
-	if (!tmp_args)
-		return (free(arg), -1);
-	*args = tmp_args;
-	(*args)[arg_ct] = arg;
-	(*args)[arg_ct + 1] = NULL;
-	return (0);
-}
-
-static void	ft_is_quote(char *cmd, int i, bool quote[3])
-{
-	if (quote[0] && cmd[i] == '\'' && cmd[i - 1] != '\\')
+	if (data)
 	{
-		quote[0] = !quote[0];
-		return ;
+		ft_close_fds(data);
+		if (data->paths)
+			ft_free_arr((void **)data->paths);
+		if (data->args)
+			ft_free_arr((void **)data->args);
+		if (data->cmd_path)
+			free(data->cmd_path);
 	}
-	if (quote[1] && cmd[i] == '\"' && cmd[i - 1] != '\\')
-	{
-		quote[1] = !quote[1];
-		return ;
-	}
-	if (cmd[i] == '\'' && (i == 0 || cmd[i - 1] != '\\'))
-		quote[0] = !quote[0];
-	else if (cmd[i] == '\"' && (i == 0 || cmd[i - 1] != '\\'))
-		quote[1] = !quote[1];
-}
-
-int	ft_split_args(char ***args, char *cmd)
-{
-	bool	quote[3];
-	int		arg_ct;
-	int		start_idx;
-	int		i;
-
-	ft_memset(quote, 0, sizeof(quote));
-	arg_ct = 0;
-	i = -1;
-	while (cmd[++i])
-	{
-		while (cmd[i] == ' ')
-			i++;
-		start_idx = i;
-		while (cmd[i] && (cmd[i] != ' ' || quote[0] || quote[1]))
-			ft_is_quote(cmd, i++, quote);
-		if (cmd[i - 1] == '\'' || cmd[i - 1] == '\"')
-			quote[2] = !quote[2];
-		if (ft_add_arg(cmd + start_idx + quote[2], args,
-				arg_ct++, i - start_idx - 2 * quote[2]) < 0)
-			return (-1);
-		if (!cmd[i])
-			break ;
-	}
-	return (0);
+	if (err_msg)
+		perror(err_msg);
+	if (status > 0)
+		exit(status);
 }
