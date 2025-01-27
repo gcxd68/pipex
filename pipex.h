@@ -26,7 +26,6 @@ typedef struct s_pipex
 	char	**paths;
 	char	*cmd[2];
 	char	*cmd_path;
-	char	*curr_cmd;
 	char	*infile;
 	char	*outfile;
 	int		io_fd[2];
@@ -40,7 +39,7 @@ void	ft_child(t_pipex *data, char **env, int curr);
 void	ft_cleanup(t_pipex *data, char *error_msg, int status);
 void	ft_close_fds(t_pipex *data);
 void	ft_invalid_cmd(t_pipex *data, int curr);
-int		ft_is_executable(t_pipex *data);
+int		ft_is_executable(t_pipex *data, int curr);
 void	ft_is_no_directory(t_pipex *data);
 int		ft_split_args(t_pipex *data, int curr);
 

@@ -43,7 +43,6 @@ static char	*ft_find_cmd_path(char *cmd, char **path)
 
 void	ft_child(t_pipex *data, char **env, int curr)
 {
-	data->curr_cmd = data->cmd[curr];
 	if (curr == 0)
 		if (dup2(data->io_fd[0], 0) == -1 || dup2(data->pipe_fd[1], 1) == -1)
 			ft_cleanup(data, "pipex: dup2 failed", 1);

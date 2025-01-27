@@ -65,20 +65,20 @@ void	ft_cleanup(t_pipex *data, char *err_msg, int status)
 		exit(status);
 }
 
-int	ft_is_executable(t_pipex *data)
+int	ft_is_executable(t_pipex *data, int curr)
 {
-	if (access(data->curr_cmd, F_OK | X_OK) == 0)
+	if (access(data->cmd[curr], F_OK | X_OK) == 0)
 	{
 		data->args = ft_calloc(2, sizeof(char *));
 		if (!data->args)
 			return (-1);
-		data->args[0] = ft_strdup(data->curr_cmd);
+		data->args[0] = ft_strdup(data->cmd[curr]);
 		if (!data->args[0])
 			return (free(data->args), data->args = 0, -1);
 	}
-	else if (access(data->curr_cmd, F_OK) == 0)
+	else if (access(data->cmd[curr], F_OK) == 0)
 	{
-		ft_dprintf(2, "pipex: %s: %s\n", data->curr_cmd, strerror(errno));
+		ft_dprintf(2, "pipex: %s: %s\n", data->cmd[curr], strerror(errno));
 		ft_cleanup(data, NULL, 126);
 	}
 	return (0);

@@ -100,7 +100,7 @@ static int	ft_split_core(char ***args, char *cmd)
 
 int	ft_split_args(t_pipex *data, int curr)
 {
-	if (ft_is_executable(data) < 0)
+	if (ft_is_executable(data, curr) < 0)
 		return (-1);
 	if (ft_split_core(&data->args, data->cmd[curr]) < 0)
 		return (-1);
