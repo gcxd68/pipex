@@ -119,7 +119,7 @@ int	main(int argc, char *argv[], char **env)
 	int		i;
 
 	data = (t_pipex){0};
-	data.here_doc = (argc > 1 && !ft_strncmp(argv[1], "here_doc", 8));
+	data.here_doc = (argc > 1 && !ft_strncmp(argv[1], "here_doc", 9));
 	data.cmd_ct = argc - 3 - data.here_doc;
 	if (data.cmd_ct < 2)
 		return (write(2, "Usage:\n./pipex file1 cmd1 ... cmdn file2\n"
