@@ -2,6 +2,8 @@
 
 # Pipex
 
+![Score: 125/100](https://img.shields.io/badge/Score-125%2F100-00b4ab?style=for-the-badge&logo=42&logoColor=white)
+
 ## Description
 Pipex is a project that explores in detail the UNIX mechanisms of process creation, pipeline redirection, and file descriptors handling. The main goal of this project is to simulate the behavior of the shell pipeline command: `< infile cmd1 | cmd2 > outfile`.
 
